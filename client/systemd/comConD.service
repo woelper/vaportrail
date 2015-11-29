@@ -1,0 +1,8 @@
+[Unit]
+Description=ComConD
+
+[Service]
+ExecStart=/usr/bin/comConD.py
+
+[Install]
+WantedBy=multi-user.target
