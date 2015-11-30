@@ -14,15 +14,17 @@ $def with (nodes)
 
         
         <DIV class="container">
-        <H3>Machine overview</H3>   
+        <H3>Machine overview</H3>
+        $ i = 0
         $for server_dict in nodes:
             $if 'host' in server_dict:
+                $ i += 1
                 <DIV class="row">
                 <DIV class="col-md-12 pull-left">Host $server_dict['host']
-                    <button class="btn label label-pill label-info" data-toggle="collapse" data-target="#$server_dict['host']">expand</button>
+                    <button class="btn label label-pill label-info" data-toggle="collapse" data-target="#$i">expand</button>
                 </DIV>
                 </DIV>
-            <div id="$server_dict['host']" class="collapse">
+            <div id="$i" class="collapse">
             $for item, value in server_dict.iteritems():
                 <DIV class="row">   
                 <DIV class="col-md-4"><strong>$item</strong></DIV>
