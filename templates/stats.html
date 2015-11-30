@@ -10,26 +10,26 @@ $def with (nodes)
         <SCRIPT src="static/bs/js/bootstrap.min.js" crossorigin="anonymous"></SCRIPT>
     </HEAD>
 
-	<BODY>
+    <BODY>
 
-		
-		<DIV class="container">
-		<H3>Machine overview</H3>	
-		$for server_dict in nodes:
-			$if 'host' in server_dict:
-				<DIV class="row">
-				<DIV class="col-md-12 pull-left">Host $server_dict['host']
+        
+        <DIV class="container">
+        <H3>Machine overview</H3>   
+        $for server_dict in nodes:
+            $if 'host' in server_dict:
+                <DIV class="row">
+                <DIV class="col-md-12 pull-left">Host $server_dict['host']
                     <button class="btn label label-pill label-info" data-toggle="collapse" data-target="#$server_dict['host']">expand</button>
                 </DIV>
                 </DIV>
             <div id="$server_dict['host']" class="collapse">
-			$for item, value in server_dict.iteritems():
-				<DIV class="row">	
-				<DIV class="col-md-4"><strong>$item</strong></DIV>
-				<DIV class="col-md-6">$value</DIV>
-				</DIV>
+            $for item, value in server_dict.iteritems():
+                <DIV class="row">   
+                <DIV class="col-md-4"><strong>$item</strong></DIV>
+                <DIV class="col-md-6">$value</DIV>
+                </DIV>
             </div>
-		</DIV>
-	</BODY>
+        </DIV>
+    </BODY>
 
 </HTML>

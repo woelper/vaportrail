@@ -4,7 +4,7 @@ import time
 
 # TODO : historical view - save state each time as list
 
-urls = ("/add", "add", '/state', 'State', '/request_port', 'request_port')
+urls = ("/add", "add", '/state', 'State', '/', 'State', '/request_port', 'request_port')
 app = web.application(urls, globals())
 hostDB = []
 PORT = 20000
