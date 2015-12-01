@@ -11,7 +11,6 @@ $def with (nodes)
     </HEAD>
 
     <BODY>
-
         
         <DIV class="container">
         <H3>Machine overview</H3>
@@ -29,25 +28,16 @@ $def with (nodes)
             <div id="$i" class="panel-collapse collapse in" role="tabpanel">
             <div class="card-block">
             $for item, value in server_dict.iteritems():
-                <DIV class="row">   
                 <DIV class="col-md-4"><strong>$item</strong></DIV>
                 <DIV class="col-md-6">$value</DIV>
-                </DIV>
                 
             $if 'ssh' in server_dict:
-                <DIV class="row">
-                <DIV class="col-md-4">
                 <A href="$server_dict['ssh']">Connect ssh session</A>
-                </DIV>
-                </DIV>
-            </div> <!-- COLLAPSE DIV-->
+                
             </div>
             </div>
-
-
-    
+            </div>    
     </div>
-
 
 
         </DIV> <!-- CONTAINER -->
