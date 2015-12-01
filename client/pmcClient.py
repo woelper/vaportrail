@@ -7,38 +7,73 @@ import json
 import subprocess
 import sys
 import multiprocessing
+import argparse
 
-# Specify the SSH server you want to use as a port forwarder.
-# You should have set up key-based passwordless access already.
-SSH_RELAY = 'schdbr.de'
-# The master server to sync to
-URL = 'http://localhost:8080'
-URL_ADD = URL + '/add'
-URL_PORT = URL + '/request_port'
+
 
 class Client():
 
     def __init__(self):
         self.tunnel_up = False
+        self.ssh_target_port = False
+        self.ssh_process = False
+        settings_file = 'pmcClient.conf'
+        settings = False
+        with open(settings_file) as logfile:  
+            settings = json.load(logfile)
+        if settings:
+            self.ssh_relay = settings['SSH_RELAY']
+            server_url = settings['SERVER_URL']
+            self.url_add = server_url + '/add'
+            self.url_port = server_url + '/request_port'
+        else:
+            print 'could not parse config file ' + settings_file
+            sys.exit(1)
 
-    @staticmethod
-    def ask_for_port(server_address):
-        REQUEST = urllib2.Request(URL_PORT)
-        try:
-            RESPONSE = urllib2.urlopen(REQUEST)
-            return RESPONSE.read()
-        except urllib2.URLError:
-            print "Could not connect to " + URL_PORT
-            return 'NULL'
+    def ask_for_port(self, server_address):
+        if not self.ssh_target_port:
+            print "requesting port from", server_address
+            REQUEST = urllib2.Request(server_address)
+            try:
+                RESPONSE = urllib2.urlopen(REQUEST)
+                self.ssh_target_port = RESPONSE.read()
+                print 'got port ', RESPONSE.read()
+                return RESPONSE.read()
+            except urllib2.URLError:
+                print "Could not connect to " + server_address
+                return False
+        else:
+            return self.ssh_target_port
 
-    @staticmethod
-    def init_tunnel(server_address, remote_port, local_port=22):
-        cmd = ['ssh', '-f', '-N', '-T', '-R'+ str(remote_port) + ':127.0.0.1:' + str(local_port), server_address]
-        #ssh -f -N -T -R22222:localhost:22 user@host
-        return_value = subprocess.call(cmd)
-        if return_value == 0:
-            return True
+    def init_tunnel(self, server_address, remote_port, local_port=22):
+        #cmd = ['ssh', '-oBatchMode=yes', '-f', '-N', '-T', '-R'+ str(remote_port) + ':127.0.0.1:' + str(local_port), server_address]
+        cmd = ['ssh', '-oBatchMode=yes', '-f', '-N', '-T', '-R'+ str(remote_port) + ':127.0.0.1:' + str(local_port), server_address]
 
+        # Is the process still running?
+
+        if self.ssh_process:
+            #print self.ssh_process.returncode
+            if self.ssh_process.returncode is None:
+                print "Tunnel connected"
+            else:
+                print "Tunnel down. Restarting."
+                self.ssh_process.kill()
+                proc = subprocess.Popen(cmd)
+                self.ssh_process = proc  
+        else:
+            print 'SSH tunnel not running. Starting it.'
+            proc = subprocess.Popen(cmd)
+            self.ssh_process = proc        
+        
+
+        """
+        else:
+            print 'Init ssh tunnel'
+            print self.ssh_process
+            cmd = ['ssh', '-oBatchMode=yes', '-N', '-T', '-R'+ str(remote_port) + ':127.0.0.1:' + str(local_port), server_address]#ssh -f -N -T -R22222:localhost:22 user@host
+            proc = subprocess.Popen(cmd)
+            self.ssh_process = proc
+        """
     @staticmethod
     def get_ip():
         """Retrieve public ip"""
@@ -105,6 +140,9 @@ class Client():
         """
 
         def loop():
+            ssh_port = self.ask_for_port(self.url_port)
+            
+
             VALUES = {
             'ip': self.get_ip(),
             'host': socket.gethostname(),
@@ -113,21 +151,19 @@ class Client():
             'memory': self.get_meminfo(),
             'os': self.get_os(),
             'cpu %': self.get_cpuinfo(),
-            'ssh': 'ssh://' + SSH_RELAY + ':' + ssh_port
+            'ssh': 'ssh://' + self.ssh_relay + ':' + ssh_port
             }
 
-            request = urllib2.Request(URL_ADD, urllib.urlencode(VALUES))
+            request = urllib2.Request(self.url_add, urllib.urlencode(VALUES))
             try:
                 response = urllib2.urlopen(request)
-                print response.read()
+                #print response.read()
             except urllib2.URLError:
-                print "Could not connect to " + URL_ADD
+                print "Could not connect to " + self.url_add
 
-            if not self.tunnel_up:
-                print 'Tunnel init: port ' + ssh_port
-                if self.init_tunnel(SSH_RELAY, ssh_port):
-                    print 'Tunnel initialized'
-                    self.tunnel_up = True
+            if ssh_port:
+                if self.init_tunnel(self.ssh_relay, ssh_port):
+                    pass
             time.sleep(interval)
 
         while True:
@@ -136,6 +172,6 @@ class Client():
 
 
 c = Client()
-ssh_port = c.ask_for_port(SSH_RELAY)
-c.updateloop(360)
+# seconds between updates
+c.updateloop(100)
 
