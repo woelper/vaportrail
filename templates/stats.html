@@ -30,7 +30,14 @@ $def with (nodes)
                 <DIV class="col-md-4"><strong>$item</strong></DIV>
                 <DIV class="col-md-6">$value</DIV>
                 </DIV>
-            </div>
+                
+            $if 'ssh' in server_dict:
+                <DIV class="row">
+                <DIV class="col-md-4">
+                <A href="$server_dict['ssh']">Connect ssh session</A>
+                </DIV>
+                </DIV>
+            </div> <!-- COLLAPSE DIV-->
         </DIV>
     </BODY>
 
