@@ -63,7 +63,11 @@ class Client():
     def get_meminfo():
         """Retrieve info about memory usage."""
         mem = False
-        mem = " ".join(subprocess.check_output(["free", "-m"]).splitlines()[1].split()).split()
+        try:
+            mem = " ".join(subprocess.check_output(["free", "-m"]).splitlines()[1].split()).split()
+        except OSError:
+            print "could not determine free mem"
+            mem = ["0", "0", "0"]
         mem_total = mem[1]
         mem_used = mem[2]
         return "{0} MB of {1} MB used".format(mem_used, mem_total)
@@ -73,13 +77,18 @@ class Client():
         """Retrieve OS type"""
         return sys.platform
 
-    @staticmethod
-    def get_cpuinfo():
+    def get_cpuinfo(self):
         """Retrieve info about CPU usage."""
         num_cpu = multiprocessing.cpu_count()
         try:
             load = subprocess.check_output("uptime").rstrip()
-            load = load.split("age: ")[1].split("  ")[0].split(",")[1]
+            if self.get_os() == "darwin":
+                load = load.split("ages: ")[1].split(" ")[0]
+                print load
+            elif "linux" in self.get_os():
+                load = load.split("age: ")[1].split("  ")[0].split(",")[1]
+            else:
+                return False
         except OSError:
             load = False
         if load:

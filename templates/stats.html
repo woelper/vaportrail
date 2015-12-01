@@ -15,16 +15,19 @@ $def with (nodes)
         
         <DIV class="container">
         <H3>Machine overview</H3>
+        <div class="card-group" id="accordion" role="tablist" aria-multiselectable="true">
+
         $ i = 0
         $for server_dict in nodes:
             $if 'host' in server_dict:
                 $ i += 1
-                <DIV class="row">
-                <DIV class="col-md-12 pull-left">Host $server_dict['host']
-                    <button class="btn label label-pill label-info" data-toggle="collapse" data-target="#$i">expand</button>
-                </DIV>
-                </DIV>
-            <div id="$i" class="collapse">
+                <div class="card">
+                <h4 class="card-header">
+                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#$i" aria-expanded="false" aria-controls="$i">Host $server_dict['host']</a>
+                </h4>
+                
+            <div id="$i" class="panel-collapse collapse in" role="tabpanel">
+            <div class="card-block">
             $for item, value in server_dict.iteritems():
                 <DIV class="row">   
                 <DIV class="col-md-4"><strong>$item</strong></DIV>
@@ -38,7 +41,16 @@ $def with (nodes)
                 </DIV>
                 </DIV>
             </div> <!-- COLLAPSE DIV-->
-        </DIV>
+            </div>
+            </div>
+
+
+    
+    </div>
+
+
+
+        </DIV> <!-- CONTAINER -->
     </BODY>
 
 </HTML>
