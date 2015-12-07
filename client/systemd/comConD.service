@@ -2,7 +2,7 @@
 Description=ComConD
 
 [Service]
-ExecStart=/usr/bin/comConD.py
+ExecStart=/usr/bin/pmClient.py
 
 [Install]
 WantedBy=multi-user.target

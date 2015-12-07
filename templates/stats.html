@@ -12,10 +12,14 @@ $def with (nodes)
 
     <BODY>
         
-        <DIV class="container">
-        <H3>Machine overview</H3>
-        <div class="card-group" id="accordion" role="tablist" aria-multiselectable="true">
+        <DIV class="container-fluid">
 
+
+
+        <H3>Machine overview</H3>
+
+
+        <div id="accordion" role="tablist" aria-multiselectable="true">
         $ i = 0
         $for server_dict in nodes:
             $if 'host' in server_dict:
@@ -25,20 +29,20 @@ $def with (nodes)
                 <a role="button" data-toggle="collapse" data-parent="#accordion" href="#$i" aria-expanded="false" aria-controls="$i">Host $server_dict['host']</a>
                 </h4>
                 
-            <div id="$i" class="panel-collapse collapse in" role="tabpanel">
+            <div id="$i" class="panel-collapse collapse" role="tabpanel">
             <div class="card-block">
             $for item, value in server_dict.iteritems():
-                <DIV class="col-md-4"><strong>$item</strong></DIV>
-                <DIV class="col-md-6">$value</DIV>
-                
+                <div class="row highlight">
+                <DIV class="col-md-3"><strong>$item</strong></DIV>
+                <DIV class="col-md-4">$value</DIV>
+                </div>
             $if 'ssh' in server_dict:
                 <A href="$server_dict['ssh']">Connect ssh session</A>
                 
             </div>
             </div>
-            </div>    
-    </div>
 
+            </div> <!-- accordion -->
 
         </DIV> <!-- CONTAINER -->
     </BODY>

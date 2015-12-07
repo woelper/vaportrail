@@ -8,26 +8,40 @@ import subprocess
 import sys
 import multiprocessing
 import argparse
+import random
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--test", action='store_true', help="Add a random host to test")
+parser.add_argument("--interval", help="Seconds between updates - default 360")
+parser.add_argument('conffile', help='The config file to use')
+args = parser.parse_args()
 
 
+print args.interval, 'interval'
+print args.test, 'test'
 
 class Client():
 
-    def __init__(self):
+    def __init__(self, conffile, test=False, interval=360):
         self.tunnel_up = False
         self.ssh_target_port = False
         self.ssh_process = False
-        settings_file = 'pmcClient.conf'
+        self.test = test
+        if interval is None:
+            self.interval = 360
+        else:
+            self.interval = interval
+
         settings = False
-        with open(settings_file) as logfile:  
-            settings = json.load(logfile)
+        with open(conffile) as config:
+            settings = json.load(config)
         if settings:
             self.ssh_relay = settings['SSH_RELAY']
             server_url = settings['SERVER_URL']
             self.url_add = server_url + '/add'
             self.url_port = server_url + '/request_port'
         else:
-            print 'could not parse config file ' + settings_file
+            print 'could not parse config file ' + conffile
             sys.exit(1)
 
     def ask_for_port(self, server_address):
@@ -134,7 +148,7 @@ class Client():
                 print "could not convert cpu to float value. Check uptime format."
         return load
 
-    def updateloop(self, interval):
+    def updateloop(self):
         """Updates the remote server's DB
         interval: seconds between updates
         """
@@ -154,6 +168,19 @@ class Client():
             'ssh': 'ssh://' + self.ssh_relay + ':' + ssh_port
             }
 
+            if self.test:
+                VALUES = {
+                    'ip': '192.168.1.1',
+                    'host': random.choice(['fred', 'mikhail', 'feodor', 'namib']) + random.choice(['.de', '.com', '.fr']),
+                    'time': time.time(),
+                    'uptime': '11h',
+                    'memory': '2gb of 4gb',
+                    'os': random.choice(['linux2', 'darwin', 'irix', 'windows']),
+                    'cpu %': 10,
+                    'ssh': 'ssh://' + self.ssh_relay + ':' + ssh_port
+                }
+
+
             request = urllib2.Request(self.url_add, urllib.urlencode(VALUES))
             try:
                 response = urllib2.urlopen(request)
@@ -164,14 +191,14 @@ class Client():
             if ssh_port:
                 if self.init_tunnel(self.ssh_relay, ssh_port):
                     pass
-            time.sleep(interval)
+            time.sleep(self.interval)
 
         while True:
             loop()
 
 
 
-c = Client()
+c = Client(args.conffile, test=args.test, interval=args.interval)
 # seconds between updates
-c.updateloop(100)
+c.updateloop()
 
