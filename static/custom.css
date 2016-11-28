@@ -1,0 +1,79 @@
+
+.oddrow, .evenrow{
+}
+
+.oddrow{
+  background-color:#efefef;
+}
+
+.evenrow{
+  background-color:#fafafa;
+}
+
+.pmc_row, .pmc_row_header{
+  padding-top: 3px;
+  width:100%;
+  float: left;
+}
+
+
+.pmc_button{
+  height: 32px;
+  width: 32px;
+  border: 0px;
+  border-radius: 8px;
+  background: #ddd;
+  margin: 4px;
+}
+
+
+.pmc_row_header{
+  width: 50px;
+}
+
+.wrapper {
+  display: flex;
+  /*flex-direction: column;
+  justify-content: center;*/
+    
+}
+
+.pmc_nav {
+  display: block;
+  background: black;
+  color: gray;
+  padding: 10px;
+  width: 100%;
+}
+
+/* Remove margins and padding from the list, and add a black background color */
+ul.topnav {
+    list-style-type: none;
+    margin: 0;
+    padding: 10;
+    overflow: hidden;
+    background-color: #333;
+    color: #ddd;
+    height: 80px;
+}
+
+/* Float the list items side by side */
+ul.topnav li {float: left;}
+
+/* Style the links inside the list items */
+ul.topnav li a {
+    display: inline-block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: 0.3s;
+    font-size: 17px;
+}
+
+/* Change background color of links on hover */
+ul.topnav li a:hover {background-color: #555;}
+
+/* Hide the list item that contains the link that should open and close the topnav on small screens */
+ul.topnav li.icon {display: none;}
+/*body { padding-top: 120px; }*/
