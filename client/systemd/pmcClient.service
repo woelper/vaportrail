@@ -1,8 +1,0 @@
-[Unit]
-Description=ComConD
-
-[Service]
-ExecStart=/usr/local/bin/pmcClient.py /etc/pmcClient.conf
-
-[Install]
-WantedBy=multi-user.target

@@ -1,50 +1,58 @@
 $def with (nodes)
 
-
 <HTML>
     <HEAD>
+        <META name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        
         <LINK rel="stylesheet" href="static/bs/css/bootstrap.min.css" crossorigin="anonymous">
         <LINK rel="stylesheet" href="static/bs/fa/css/font-awesome.min.css">
+        <LINK rel="stylesheet" href="static/custom.css"> 
         <LINK rel="icon" type="image/png" href="static/img/favicon.ico"/>
-        <SCRIPT src="static/jq/jquery.js"></SCRIPT>
-        <SCRIPT src="static/bs/js/bootstrap.min.js" crossorigin="anonymous"></SCRIPT>
+        <LINK rel="icon" type="image/png" href="static/img/icon_64.png" sizes="64x64">
+
     </HEAD>
 
+
+
     <BODY>
-        
+
+<ul class="topnav" id="myTopnav">
+<li>pmc</li>
+</ul>
+<br>
+
         <DIV class="container-fluid">
+            $if len(nodes) == 0:
+                No active clients registered.
+            $for num, server_dict in enumerate(nodes):
+                $if 'host' in server_dict:
+                    $if num % 2 == 0:
+                        <DIV class="col-md-12 oddrow">
+                    $else:
+                        <DIV class="col-md-12 evenrow">
+                    <DIV class="wrapper" data-toggle="collapse" data-target="#$server_dict['host']">
+                        <div class="pmc_row_header">${num+1}</div>
+                        <div class="pmc_row">
+                            <i class="fa fa-server" aria-hidden="true"></i>
+                            $server_dict['host']
+                        </div>
+                        <button class="pmc_button" data-toggle="collapse" data-target="#$server_dict['host']">
+                            <i class="fa fa-info-circle" aria-hidden="true"></i>
+                        </button>
+                    </DIV> <!-- wrapper -->
+                    <DIV id="$server_dict['host']" class="collapse col-md-12">
+                        <UL class="list-group">
+                        $for item, value in server_dict.iteritems():
+                            <li class="list-group-item"><strong>$item:</strong> $value</li>                	
+                        </UL>
+                    </DIV>
+                </DIV> 
+        </DIV> <!-- container-fluid -->
 
 
 
-        <H3>Machine overview</H3>
-
-
-        <div id="accordion" role="tablist" aria-multiselectable="true">
-        $ i = 0
-        $for server_dict in nodes:
-            $if 'host' in server_dict:
-                $ i += 1
-                <div class="card">
-                <h4 class="card-header">
-                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#$i" aria-expanded="false" aria-controls="$i">Host $server_dict['host']</a>
-                </h4>
-                
-            <div id="$i" class="panel-collapse collapse" role="tabpanel">
-            <div class="card-block">
-            $for item, value in server_dict.iteritems():
-                <div class="row highlight">
-                <DIV class="col-md-3"><strong>$item</strong></DIV>
-                <DIV class="col-md-4">$value</DIV>
-                </div>
-            $if 'ssh' in server_dict:
-                <A href="$server_dict['ssh']">Connect ssh session</A>
-                
-            </div>
-            </div>
-
-            </div> <!-- accordion -->
-
-        </DIV> <!-- CONTAINER -->
+        <SCRIPT src="static/js/jquery.min.js"></SCRIPT>
+        <SCRIPT src="static/bs/js/bootstrap.min.js" crossorigin="anonymous"></SCRIPT>
+    
     </BODY>
-
 </HTML>
