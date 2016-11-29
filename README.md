@@ -1,6 +1,7 @@
 # Welcome
 
 PMC, or the Poor Man's Cloud, allows you to monitor and access all your devices running multiple OSes.
+
 Just imagine something like New Relic (tm) in underpants. Or don't.
 
 Features:
@@ -31,8 +32,11 @@ Dyndns / port forwarding does not work on most mobile / LTE networks. PMC with S
 > So what exactly is this for?
 
 This is meant as a toolbox rather than a complete package. Some apllications could include:
+
 Setting up some Raspberry Pis to report any data periodically
+
 Leave your workstation at home running, allowing you to log in later
+
 Add some servers / NAS / routers together with service output to monitor health of your hardware or software
 
 ## Planned:
@@ -51,7 +55,7 @@ Just run setup_server.sh - all it will do is pull the submodule in git.
 ### Client
 
 In the simplest form, you can use anything that understands POST, such as curl:
-curl --data "host=testmachine2&ip=10.10.0.12" http://localhost:8080/add
+`curl --data "host=testmachine2&ip=10.10.0.12" http://localhost:8080/add`
 
 The only thing you really need is a "host" identifier. Everything else is up to you.
 
