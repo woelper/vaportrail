@@ -2,12 +2,13 @@
 import time
 import sys
 import os
-
+import hashlib
 
 """
 Web.py has a structure that dictates it can not imported as-is.
 We'll just do some sanity checks and add the folder to the path.
 """
+
 current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 webpy_location = os.path.join(current_dir, 'webpy')
 if not os.path.isdir(webpy_location):
@@ -16,7 +17,6 @@ if not os.path.isdir(webpy_location):
 else:
     sys.path.append(webpy_location)
     import web
-
 
 # TODO : historical view - save state each time as list
 
@@ -31,7 +31,6 @@ def boolify(s):
     if s == 'False':
         return False
     raise ValueError("could not convert string to bool")
-
 
 def autoconvert(s):
     for fn in (boolify, int, float):
@@ -57,8 +56,16 @@ class State:
                 hours, rest = divmod(timediff, 3600)
                 minutes, seconds = divmod(rest, 60)
                 #hrt = time.asctime( timediff )
-                timediffstring = ' '.join([ str(int(hours)),"h", str(int(minutes)),"m", str(int(seconds)),"s"])
-                client_dict["last update"] = timediffstring
+                timediffstring = ' '.join([str(int(hours)),'h', str(int(minutes)), 'm', str(int(seconds)), 's'])
+                client_dict['last update'] = timediffstring
+            # for generating DIV ids, we need a clean id string without spaces and other funky stuff
+            client_dict['id'] = hashlib.md5(client_dict['host']).hexdigest()
+            # enable users to pass their icon to do so, set a default one,
+            if 'icon' not in client_dict.keys():
+                client_dict['icon'] = 'fa-server'
+                
+                
+
     
             stat_db.append(client_dict)
         html = web.template.frender('templates/stats.html')

@@ -11,9 +11,12 @@
 }
 
 .pmc_row, .pmc_row_header{
-  padding-top: 3px;
+  /*padding-top: 3px;*/
+  height: 40px;
+  line-height: 40px;
   width:100%;
   float: left;
+  vertical-align: middle;
 }
 
 
@@ -23,7 +26,7 @@
   border: 0px;
   border-radius: 8px;
   background: #ddd;
-  margin: 4px;
+  /*margin: 4px;*/
 }
 
 
@@ -33,9 +36,14 @@
 
 .wrapper {
   display: flex;
-  /*flex-direction: column;
-  justify-content: center;*/
-    
+}
+
+.pmc_row .fa, .pmc_row_header .fa {
+  vertical-align: middle;
+  /*margin-top: 25%;
+  margin: auto;*/
+  font-size: 20px;
+  height: 100%;
 }
 
 .pmc_nav {
@@ -44,9 +52,9 @@
   color: gray;
   padding: 10px;
   width: 100%;
+  transition: 0.3s;
 }
 
-/* Remove margins and padding from the list, and add a black background color */
 ul.topnav {
     list-style-type: none;
     margin: 0;
@@ -57,10 +65,8 @@ ul.topnav {
     height: 80px;
 }
 
-/* Float the list items side by side */
 ul.topnav li {float: left;}
 
-/* Style the links inside the list items */
 ul.topnav li a {
     display: inline-block;
     color: #f2f2f2;
@@ -71,9 +77,4 @@ ul.topnav li a {
     font-size: 17px;
 }
 
-/* Change background color of links on hover */
 ul.topnav li a:hover {background-color: #555;}
-
-/* Hide the list item that contains the link that should open and close the topnav on small screens */
-ul.topnav li.icon {display: none;}
-/*body { padding-top: 120px; }*/

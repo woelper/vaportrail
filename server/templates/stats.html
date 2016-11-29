@@ -7,43 +7,43 @@ $def with (nodes)
         <LINK rel="stylesheet" href="static/bs/css/bootstrap.min.css" crossorigin="anonymous">
         <LINK rel="stylesheet" href="static/bs/fa/css/font-awesome.min.css">
         <LINK rel="stylesheet" href="static/custom.css"> 
-        <LINK rel="icon" type="image/png" href="static/img/favicon.ico"/>
-        <LINK rel="icon" type="image/png" href="static/img/icon_128.png" sizes="64x64">
+        <!-- <LINK rel="icon" type="image/png" href="static/img/favicon.ico"/> -->
+        <LINK rel="icon" type="image/png" href="static/img/icon_128.png" sizes="128x128">
 
-    </HEAD>
+</HEAD>
 
+<BODY>
 
-
-    <BODY>
-
-<ul class="topnav" id="myTopnav">
-<img src="static/img/logo.png" width="10%"> </img>
-</ul>
-<br>
+    <ul class="topnav" id="myTopnav">
+        <img src="static/img/logo.png" width="11%"> </img>
+    </ul>
+    <br>
 
         <DIV class="container-fluid">
             $if len(nodes) == 0:
-                No active clients registered.
+                <i class="fa fa-power-off" aria-hidden="true"></i> No active clients registered.
             $for num, server_dict in enumerate(nodes):
                 $if 'host' in server_dict:
                     $if num % 2 == 0:
                         <DIV class="col-md-12 oddrow">
                     $else:
                         <DIV class="col-md-12 evenrow">
-                    <DIV class="wrapper" data-toggle="collapse" data-target="#$server_dict['host']">
-                        <div class="pmc_row_header">${num+1}</div>
+                    <DIV class="wrapper" data-toggle="collapse" data-target="#$server_dict['id']">
+                        <div class="pmc_row_header">
+                            <i class="fa $server_dict['icon']" aria-hidden="true"></i>
+                            <!--${num+1}-->
+                        </div>
                         <div class="pmc_row">
-                            <i class="fa fa-server" aria-hidden="true"></i>
                             $server_dict['host']
                         </div>
-                        <button class="pmc_button" data-toggle="collapse" data-target="#$server_dict['host']">
+                        <button class="pmc_button" data-toggle="collapse" data-target="#$server_dict['id']">
                             <i class="fa fa-info-circle" aria-hidden="true"></i>
                         </button>
                     </DIV> <!-- wrapper -->
-                    <DIV id="$server_dict['host']" class="collapse col-md-12">
+                    <DIV id="$server_dict['id']" class="collapse col-md-12">
                         <UL class="list-group">
                         $for item, value in server_dict.iteritems():
-                            <li class="list-group-item"><strong>$item:</strong> $value</li>                	
+                            <li class="list-group-item"><strong>$item:</strong> $value</li>
                         </UL>
                     </DIV>
                 </DIV> 
