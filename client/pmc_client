@@ -15,8 +15,6 @@ import argparse
 # Specify the SSH server you want to use as a port forwarder.
 # You should have set up key-based passwordless access already. Otherwise you will be asked for a password.
 # as in SSH, you may enter user@host here, too.
-SSH_RELAY = 'localhost'
-# The master server to sync to. 
 
 
 class Client():
@@ -41,7 +39,7 @@ class Client():
         self.ssh_port_url = server + '/request_port'
         
 
-    def ask_for_port(self, server_address):
+    def ask_for_port(self):
         REQUEST = urllib2.Request(self.ssh_port_url)
         try:
             RESPONSE = urllib2.urlopen(REQUEST)
@@ -184,6 +182,6 @@ if __name__ == '__main__':
     print args.server
     #sys.exit(1)
     c = Client(args.server, custom_hostname=args.hostname, ssh_relay=args.ssh_relay)
-    c.ssh_port = c.ask_for_port(SSH_RELAY)
+    c.ssh_port = c.ask_for_port()
     c.updateloop(360)
 
