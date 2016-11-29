@@ -7,6 +7,7 @@ import json
 import subprocess
 import sys
 import multiprocessing
+import argparse
 
 
 # TODO: add argparse to configure the parameters
@@ -16,33 +17,40 @@ import multiprocessing
 # as in SSH, you may enter user@host here, too.
 SSH_RELAY = 'localhost'
 # The master server to sync to. 
-URL = 'http://localhost:4000'
-URL_ADD = URL + '/add'
-URL_PORT = URL + '/request_port'
 
 
 class Client():
 
-    def __init__(self, custom_hostname=None):
+    def __init__(self, server, custom_hostname=None, ssh_relay=None):
         self.tunnel_up = False
         self.ssh_port = None
+
+        self.ssh_relay = None
+        if ssh_relay is not None:
+            self.ssh_relay = ssh_relay
+        
         self.custom_hostname = None
         if custom_hostname is not None:
             self.custom_hostname = custom_hostname
-            
 
-    @staticmethod
-    def ask_for_port(server_address):
-        REQUEST = urllib2.Request(URL_PORT)
+        if not server.startswith('http://'):
+            server = 'http://' + server
+
+        self.server = server
+        self.post_url = server + '/add'
+        self.ssh_port_url = server + '/request_port'
+        
+
+    def ask_for_port(self, server_address):
+        REQUEST = urllib2.Request(self.ssh_port_url)
         try:
             RESPONSE = urllib2.urlopen(REQUEST)
             return RESPONSE.read()
         except urllib2.URLError:
-            print 'Could not connect to ' + URL_PORT
-            return 'NULL'
+            print 'Could not connect to ' + self.ssh_port_url
+            return None
 
-    @staticmethod
-    def init_tunnel(server_address, remote_port, local_port=22):
+    def init_tunnel(self, server_address, remote_port, local_port=22):
         """
         Initializes a SSH tunnel
         returns: None or True depending on success
@@ -51,6 +59,7 @@ class Client():
         #ssh -f -N -T -R22222:localhost:22 user@host
         return_value = subprocess.call(cmd)
         if return_value == 0:
+            self.tunnel_up = True
             return True
 
     @staticmethod
@@ -87,10 +96,13 @@ class Client():
         returns: string
         """
         mem = False
-        mem = ' '.join(subprocess.check_output(['free', '-m']).splitlines()[1].split()).split()
-        mem_total = mem[1]
-        mem_used = mem[2]
-        return '{0} MB of {1} MB used'.format(mem_used, mem_total)
+        try:
+            mem = ' '.join(subprocess.check_output(['free', '-m']).splitlines()[1].split()).split()
+            mem_total = mem[1]
+            mem_used = mem[2]
+            return '{0} MB of {1} MB used'.format(mem_used, mem_total)
+        except OSError:
+            return 'free -m returned an error'
 
     @staticmethod
     def get_os():
@@ -98,7 +110,6 @@ class Client():
         Retrieve OS type
         returns: string
         """
-
         return sys.platform
 
     @staticmethod
@@ -111,7 +122,7 @@ class Client():
         try:
             load = subprocess.check_output('uptime').rstrip()
             load = load.split('age: ')[1].split('  ')[0].split(',')[1]
-        except OSError:
+        except:
             load = False
         if load:
             try:
@@ -138,23 +149,24 @@ class Client():
                 'test sensor data': 'some data'
             }
 
-            if not self.tunnel_up and self.ssh_port is not None:
-                print 'Tunnel init: port ' + self.ssh_port
-                if self.init_tunnel(SSH_RELAY, self.ssh_port):
-                    print 'Tunnel initialized'
-                    self.tunnel_up = True
-                    VALUES['ssh tunnel entry'] = 'ssh://{}:{}'.format(SSH_RELAY, self.ssh_port)
+            if self.ssh_relay is not None:
+                if not self.tunnel_up and self.ssh_port is not None:
+                    print 'Tunnel init: port ' + self.ssh_port
+                    if self.init_tunnel(self.ssh_relay, self.ssh_port):
+                        print 'Tunnel initialized'
+                        self.tunnel_up = True
+                        VALUES['ssh tunnel entry'] = 'ssh://{}:{}'.format(self.ssh_relay, self.ssh_port)
 
             if self.custom_hostname is not None:
                 VALUES['host'] = self.custom_hostname
 
 
-            request = urllib2.Request(URL_ADD, urllib.urlencode(VALUES))
+            request = urllib2.Request(self.post_url, urllib.urlencode(VALUES))
             try:
                 response = urllib2.urlopen(request)
                 print 'GOT RESPONSE', response.read()
             except urllib2.URLError:
-                print 'Could not connect to ' + URL_ADD
+                print 'Could not connect to ' + self.post_url
 
             time.sleep(interval)
 
@@ -162,8 +174,16 @@ class Client():
             loop()
 
 
-c = Client(custom_hostname='alta')
-#c.ssh_port = c.ask_for_port(SSH_RELAY)
-#ssh_port = c.ask_for_port(SSH_RELAY)
-c.updateloop(360)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Update client')
+    parser.add_argument('server', help='pmc server instance')
+    parser.add_argument('--hostname', default=None, help='Set custom hostname')
+    parser.add_argument('--ssh_relay', default=None, help='Set SSH tunnel server')
+
+    args = parser.parse_args()
+    print args.server
+    #sys.exit(1)
+    c = Client(args.server, custom_hostname=args.hostname, ssh_relay=args.ssh_relay)
+    c.ssh_port = c.ask_for_port(SSH_RELAY)
+    c.updateloop(360)
 
