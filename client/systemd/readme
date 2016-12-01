@@ -1,0 +1,9 @@
+copy the service file to /usr/lib/systemd/system and configure:
+
+cp pmc_client.service /usr/lib/systemd/system/
+edit the HOSTNAME in /usr/lib/systemd/system/pmc_client.service to point to your host running the pmc server instance
+
+then:
+systemctl enable pmc_client.service
+systemctl start pmc_client
+

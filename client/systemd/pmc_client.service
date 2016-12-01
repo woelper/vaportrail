@@ -1,0 +1,8 @@
+[Unit]
+Description=pmc_client_updater
+
+[Service]
+ExecStart=/usr/bin/pmc_client HOSTNAME
+
+[Install]
+WantedBy=multi-user.target
