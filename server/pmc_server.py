@@ -42,6 +42,8 @@ def autoconvert(s):
 
 
 class State:
+    inactive_delta = 2000
+
     def GET(self):
         print "---------------------------- Client state: --------------------"
         stat_db = []
@@ -53,6 +55,10 @@ class State:
                 float_time = float(dict_item['time'])
                 now = time.time()
                 timediff = now - float_time
+                if timediff > self.inactive_delta:
+                    client_dict['inactive'] = True
+                else:
+                    client_dict['inactive'] = False
                 hours, rest = divmod(timediff, 3600)
                 minutes, seconds = divmod(rest, 60)
                 #hrt = time.asctime( timediff )
@@ -63,10 +69,7 @@ class State:
             # enable users to pass their icon to do so, set a default one,
             if 'icon' not in client_dict.keys():
                 client_dict['icon'] = 'fa-server'
-                
-                
 
-    
             stat_db.append(client_dict)
         html = web.template.frender('templates/stats.html')
         return html(stat_db)

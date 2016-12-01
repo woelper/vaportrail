@@ -37,6 +37,13 @@ $def with (nodes)
                             $server_dict['host']
                         </div>
                         <div class="pmc_row_header">
+                            $if server_dict['inactive']:
+                                <i class="fa fa-ban" aria-hidden="true"></i>
+                            $else:
+                                <i class="fa fa-check" aria-hidden="true"></i>
+                        </div>
+
+                        <div class="pmc_row_header">
                             <i class="fa fa-info-circle pushable" aria-hidden="true"></i>
                             <!--
                             <button class="pmc_button" data-toggle="collapse" data-target="#$server_dict['id']">
