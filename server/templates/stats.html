@@ -36,9 +36,14 @@ $def with (nodes)
                         <div class="pmc_row">
                             $server_dict['host']
                         </div>
-                        <button class="pmc_button" data-toggle="collapse" data-target="#$server_dict['id']">
-                            <i class="fa fa-info-circle" aria-hidden="true"></i>
-                        </button>
+                        <div class="pmc_row_header">
+                            <i class="fa fa-info-circle pushable" aria-hidden="true"></i>
+                            <!--
+                            <button class="pmc_button" data-toggle="collapse" data-target="#$server_dict['id']">
+                                <i class="fa fa-info-circle" aria-hidden="true"></i>
+                            </button>
+                            -->
+                        </div>
                     </DIV> <!-- wrapper -->
                     <DIV id="$server_dict['id']" class="collapse col-md-12">
                         <UL class="list-group">
