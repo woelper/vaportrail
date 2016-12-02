@@ -52,9 +52,13 @@
 
 }
 
-
+.collapse {
+  display: none;
+}
 
 ul.topnav {
+    left:0px;
+    bottom:0px;
     list-style-type: none;
     margin: 0;
     padding: 10;
@@ -62,6 +66,7 @@ ul.topnav {
     background-color: #333;
     color: #ddd;
     height: 80px;
+    width:100%;
 }
 
 ul.topnav li {float: left;}
