@@ -24,6 +24,7 @@ urls = ("/", "State" ,"/add", "add", '/state', 'State', '/request_port', 'reques
 app = web.application(urls, globals())
 hostDB = {}
 PORT = 20000
+UPDATES = 0
 
 def boolify(s):
     if s == 'True':
@@ -51,14 +52,27 @@ class State:
         for dict_item in hostDB.itervalues():
             client_dict = dict_item
 
+            # The timing logic
+            # do we have a timastamp at all?
             if 'time' in dict_item.keys():
                 float_time = float(dict_item['time'])
                 now = time.time()
                 timediff = now - float_time
-                if timediff > self.inactive_delta:
+
+                # init rate with our default inactive delta. Anything older is inactive.
+                rate = self.inactive_delta
+                # if the client sent 'update_rate', we use this to determine if it's inactive
+                if 'update_rate' in dict_item.keys():
+                    try:
+                        rate = float(dict_item['update_rate'])
+                    except ValueError:
+                        print 'wrong value for update_rate'
+
+                if timediff > rate:
                     client_dict['inactive'] = True
                 else:
                     client_dict['inactive'] = False
+
                 hours, rest = divmod(timediff, 3600)
                 minutes, seconds = divmod(rest, 60)
                 #hrt = time.asctime( timediff )
@@ -72,7 +86,10 @@ class State:
 
             stat_db.append(client_dict)
         html = web.template.frender('templates/stats.html')
-        return html(stat_db)
+
+        server_stats = {}
+        server_stats['updates'] = UPDATES
+        return html(stat_db, server_stats)
 
 
 class request_port:
@@ -83,8 +100,6 @@ class request_port:
 
 
 class add:
-    def __init__(self):
-        test = "hallo"
 
     @staticmethod
     def GET():
@@ -108,6 +123,8 @@ class add:
 
         hostDB[host] = data
 
+        global UPDATES
+        UPDATES += 1
         return 'Your host {} was added.'.format(host)
 
 

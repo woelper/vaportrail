@@ -1,4 +1,4 @@
-$def with (nodes)
+$def with (nodes, stats)
 
 <HTML>
     <HEAD>
@@ -45,11 +45,6 @@ $def with (nodes)
 
                         <div class="pmc_row_header">
                             <i class="fa fa-info-circle pushable" aria-hidden="true"></i>
-                            <!--
-                            <button class="pmc_button" data-toggle="collapse" data-target="#$server_dict['id']">
-                                <i class="fa fa-info-circle" aria-hidden="true"></i>
-                            </button>
-                            -->
                         </div>
                     </DIV> <!-- wrapper -->
                     <DIV id="$server_dict['id']" class="collapse col-md-12">
@@ -61,7 +56,16 @@ $def with (nodes)
                 </DIV> 
         </DIV> <!-- container-fluid -->
 
-
+<div id="footer">
+    <i class="fa fa-bolt" aria-hidden="true"></i>
+    poor man's cloud
+    <i class="fa fa-download" aria-hidden="true"></i>
+    <a href=http://github.com/woelper/pmc>github.com/woelper/pmc</a>
+    <i class="fa fa-info-circle" aria-hidden="true"></i>
+    $len(nodes) host(s) tracked, $stats['updates'] updates received
+    <i class="fa fa-rocket" aria-hidden="true"></i>
+    don't panic
+</div>
 
         <SCRIPT src="static/js/jquery.min.js"></SCRIPT>
         <SCRIPT src="static/bs/js/bootstrap.min.js" crossorigin="anonymous"></SCRIPT>

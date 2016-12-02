@@ -8,6 +8,7 @@ import subprocess
 import sys
 import multiprocessing
 import argparse
+import platform
 
 
 # TODO: add argparse to configure the parameters
@@ -108,7 +109,8 @@ class Client():
         Retrieve OS type
         returns: string
         """
-        return sys.platform
+        #return sys.platform
+        return platform.platform()
 
     @staticmethod
     def get_cpuinfo():
@@ -144,7 +146,8 @@ class Client():
                 'memory': self.get_meminfo(),
                 'os': self.get_os(),
                 'cpu %': self.get_cpuinfo(),
-                'test sensor data': 'some data'
+                'update_rate': interval,
+                'cpu type': platform.processor()
             }
 
             if self.ssh_relay is not None:

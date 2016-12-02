@@ -54,16 +54,6 @@
 
 
 
-
-.pmc_nav {
-  display: block;
-  background: black;
-  color: gray;
-  padding: 10px;
-  width: 100%;
-  transition: 0.3s;
-}
-
 ul.topnav {
     list-style-type: none;
     margin: 0;
@@ -87,3 +77,31 @@ ul.topnav li a {
 }
 
 ul.topnav li a:hover {background-color: #555;}
+
+a {
+  color: rgb(150, 150, 150);
+}
+
+a:hover {
+  color: rgb(250, 150, 150);
+}
+
+
+
+#footer {
+   position:fixed;
+   left:0px;
+   bottom:0px;
+   height:30px;
+   width:100%;
+   background:#333;
+   /*text-align: center;*/
+   padding: 5px;
+   color: #777;
+   font-size: 0.8em;
+   margin-top: 30px;  
+}
+
+.container-fluid{
+  margin-bottom: 50px;
+  }
