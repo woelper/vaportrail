@@ -4,8 +4,8 @@ $def with (nodes, stats)
     <HEAD>
         <META name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
         
-        <LINK rel="stylesheet" href="static/bs/css/bootstrap.min.css" crossorigin="anonymous">
-        <LINK rel="stylesheet" href="static/bs/fa/css/font-awesome.min.css">
+        <!--<LINK rel="stylesheet" href="static/bs/css/bootstrap.min.css" crossorigin="anonymous">-->
+        <!--<LINK rel="stylesheet" href="static/bs/fa/css/font-awesome.min.css">-->
         <LINK rel="stylesheet" href="static/custom.css"> 
         <!-- <LINK rel="icon" type="image/png" href="static/img/favicon.ico"/> -->
         <LINK rel="icon" type="image/png" href="static/img/icon_128.png" sizes="128x128">
@@ -56,19 +56,44 @@ $def with (nodes, stats)
                 </DIV> 
         </DIV> <!-- container-fluid -->
 
-<div id="footer">
-    <i class="fa fa-bolt" aria-hidden="true"></i>
-    poor man's cloud
-    <i class="fa fa-download" aria-hidden="true"></i>
-    <a href=http://github.com/woelper/pmc>github.com/woelper/pmc</a>
-    <i class="fa fa-info-circle" aria-hidden="true"></i>
-    $len(nodes) host(s) tracked, $stats['updates'] updates received
-    <i class="fa fa-rocket" aria-hidden="true"></i>
-    don't panic
-</div>
+        <div id="footer">
+            <i class="fa fa-bolt" aria-hidden="true"></i>
+            poor man's cloud
+            <i class="fa fa-download" aria-hidden="true"></i>
+            <a href=http://github.com/woelper/pmc>github.com/woelper/pmc</a>
+            <i class="fa fa-info-circle" aria-hidden="true"></i>
+            $len(nodes) host(s) tracked, $stats['updates'] updates received
+            <i class="fa fa-rocket" aria-hidden="true"></i>
+            don't panic
+        </div>
 
         <SCRIPT src="static/js/jquery.min.js"></SCRIPT>
         <SCRIPT src="static/bs/js/bootstrap.min.js" crossorigin="anonymous"></SCRIPT>
     
+        <script>
+            var cb = function() {
+            var l = document.createElement('link'); l.rel = 'stylesheet';
+            l.href = 'static/bs/fa/css/font-awesome.min.css';
+            var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
+            };
+            var raf = requestAnimationFrame || mozRequestAnimationFrame ||
+            webkitRequestAnimationFrame || msRequestAnimationFrame;
+            if (raf) raf(cb);
+            else window.addEventListener('load', cb);
+        </script>
+
+        <script>
+            var cb = function() {
+            var l = document.createElement('link'); l.rel = 'stylesheet';
+            l.href = 'static/bs/css/bootstrap.min.css';
+            var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
+            };
+            var raf = requestAnimationFrame || mozRequestAnimationFrame ||
+            webkitRequestAnimationFrame || msRequestAnimationFrame;
+            if (raf) raf(cb);
+            else window.addEventListener('load', cb);
+        </script>
+
+
     </BODY>
 </HTML>
