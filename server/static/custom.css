@@ -1,3 +1,10 @@
+body {
+  margin-top:0;
+  margin-left: 0;
+  margin-right: 0;
+  padding:0;
+  font-family: Arial, Helvetica, sans-serif;
+}
 
 .oddrow, .evenrow{
   margin: 0px;
@@ -12,7 +19,6 @@
   background-color:#fafafa;
 }
 
-
 .pmc_row, .pmc_row_header{
   height: 40px;
   line-height: 40px;
@@ -20,16 +26,20 @@
   float: left;
 }
 
+.pmc_row_header{
+  width: 10%;
+  margin-left:10px;
+}
+
+.pmc_row .fa, .pmc_row_header .fa {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
 
 .pushable:hover{
   color: #444;
   text-shadow: 0px 0px 8px rgba(0, 0, 100, 0.3);
-}
-
-
-.pmc_row_header{
-  width: 10%;
-  margin-left:10px;
 }
 
 .wrapper{
@@ -41,17 +51,8 @@
   background:rgba(0, 0, 100, 0.03);
 }
 
-.pmc_row .fa, .pmc_row_header .fa {
-  /*vertical-align: middle;
-  margin-top: 20%;
-  font-size: 20px;
-  height: 100%;*/
-  position: relative;
-  top: 50%;
-  transform: translateY(-50%);
 
-}
-
+/*Hide stuff in collapsible divs on load until bootstrap is loaded*/
 .collapse {
   display: none;
 }
@@ -67,45 +68,26 @@ ul.topnav {
     color: #ddd;
     height: 80px;
     width:100%;
+    box-shadow: 0px 0px 20px 4px rgba(0,0,0,0.2);
 }
 
 ul.topnav li {float: left;}
 
-ul.topnav li a {
-    display: inline-block;
-    color: #f2f2f2;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-    transition: 0.3s;
-    font-size: 17px;
-}
-
-ul.topnav li a:hover {background-color: #555;}
-
-a {
-  color: rgb(150, 150, 150);
-}
-
-a:hover {
-  color: rgb(250, 150, 150);
-}
-
-
-
 #footer {
+  display: block;
    position:fixed;
    left:0px;
    bottom:0px;
    height:30px;
    width:100%;
    background:#333;
-   /*text-align: center;*/
    padding: 5px;
    color: #777;
    font-size: 0.8em;
-   margin-top: 30px;  
+   margin-top: 30px;
+   box-shadow: 0px 0px 20px 4px rgba(0,0,0,0.2);
 }
+
 
 .container-fluid{
   margin-bottom: 50px;

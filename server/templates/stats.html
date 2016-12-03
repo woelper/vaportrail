@@ -9,19 +9,20 @@ $def with (nodes, stats)
         <LINK rel="stylesheet" href="static/custom.css"> 
         <!-- <LINK rel="icon" type="image/png" href="static/img/favicon.ico"/> -->
         <LINK rel="icon" type="image/png" href="static/img/icon_128.png" sizes="128x128">
-
 </HEAD>
 
 <BODY>
 
-    <ul class="topnav" id="myTopnav">
-        <img src="static/img/logo.png" width="11%"> </img>
-    </ul>
-    <br>
+    <UL class="topnav" id="myTopnav">
+        <img src="static/img/logo.png" height="80%"> </img>
+    </UL>
+    <BR>
 
         <DIV class="container-fluid">
             $if len(nodes) == 0:
                 <i class="fa fa-power-off" aria-hidden="true"></i> No active clients registered.
+   
+            
             $for num, server_dict in enumerate(nodes):
                 $if 'host' in server_dict:
                     $if num % 2 == 0:
@@ -31,7 +32,6 @@ $def with (nodes, stats)
                     <DIV class="wrapper" data-toggle="collapse" data-target="#$server_dict['id']">
                         <div class="pmc_row_header">
                             <i class="fa $server_dict['icon']" aria-hidden="true"></i>
-                            <!--${num+1}-->
                         </div>
                         <div class="pmc_row">
                             $server_dict['host']
@@ -56,13 +56,20 @@ $def with (nodes, stats)
                 </DIV> 
         </DIV> <!-- container-fluid -->
 
+
+        <!--Some generic info goes into the footer-->
         <div id="footer">
             <i class="fa fa-bolt" aria-hidden="true"></i>
             poor man's cloud 
             <i class="fa fa-download" aria-hidden="true"></i>
             <a href=http://github.com/woelper/pmc>github</a>
             <i class="fa fa-info-circle" aria-hidden="true"></i>
-            $len(nodes) host(s) tracked, $stats['updates'] updates received 
+            $len(nodes)
+            $if len(nodes) == 1:
+                host
+            $else:
+                hosts
+            tracked, $stats['updates'] updates received 
             <i class="fa fa-rocket" aria-hidden="true"></i> 
             don't panic
         </div>
@@ -72,9 +79,9 @@ $def with (nodes, stats)
     
         <script>
             var cb = function() {
-            var l = document.createElement('link'); l.rel = 'stylesheet';
-            l.href = 'static/bs/fa/css/font-awesome.min.css';
-            var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
+                var l = document.createElement('link'); l.rel = 'stylesheet';
+                l.href = 'static/bs/fa/css/font-awesome.min.css';
+                var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
             };
             var raf = requestAnimationFrame || mozRequestAnimationFrame ||
             webkitRequestAnimationFrame || msRequestAnimationFrame;
@@ -84,9 +91,9 @@ $def with (nodes, stats)
 
         <script>
             var cb = function() {
-            var l = document.createElement('link'); l.rel = 'stylesheet';
-            l.href = 'static/bs/css/bootstrap.min.css';
-            var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
+                var l = document.createElement('link'); l.rel = 'stylesheet';
+                l.href = 'static/bs/css/bootstrap.min.css';
+                var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
             };
             var raf = requestAnimationFrame || mozRequestAnimationFrame ||
             webkitRequestAnimationFrame || msRequestAnimationFrame;

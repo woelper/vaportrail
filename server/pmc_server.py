@@ -22,9 +22,13 @@ else:
 
 urls = ("/", "State" ,"/add", "add", '/state', 'State', '/request_port', 'request_port')
 app = web.application(urls, globals())
-hostDB = {}
+HOSTDB = {}
+STATS = {}
 PORT = 20000
 UPDATES = 0
+
+STATS['updates'] = 0
+
 
 def boolify(s):
     if s == 'True':
@@ -42,6 +46,27 @@ def autoconvert(s):
     return s
 
 
+def add_or_update(value_dict):
+
+    value_dict['time'] = time.time()
+    # make sure there is a 'host entry'
+    if not 'host' in value_dict.keys():
+        return 'You need to specify a value for "host."'
+
+    host = value_dict['host']
+
+    # let's convert the strings to appropriate vars
+    for key in value_dict:
+        value_dict[key] = autoconvert(value_dict[key])
+
+    HOSTDB[host] = value_dict
+    STATS['updates'] += 1
+
+
+    return 'Your host {} was added.'.format(host)
+
+
+
 class State:
     inactive_delta = 2000
 
@@ -49,7 +74,7 @@ class State:
         print "---------------------------- Client state: --------------------"
         stat_db = []
 
-        for dict_item in hostDB.itervalues():
+        for dict_item in HOSTDB.itervalues():
             client_dict = dict_item
 
             # The timing logic
@@ -87,9 +112,7 @@ class State:
             stat_db.append(client_dict)
         html = web.template.frender('templates/stats.html')
 
-        server_stats = {}
-        server_stats['updates'] = UPDATES
-        return html(stat_db, server_stats)
+        return html(stat_db, STATS)
 
 
 class request_port:
@@ -103,29 +126,14 @@ class add:
 
     @staticmethod
     def GET():
-        return "You must use POST. Sorry."
+        # return "You must use POST. Sorry."
+        data = dict(web.input())
+        return add_or_update(data)
 
     @staticmethod
     def POST():
         data = dict(web.input())
-        # set the time
-        data['time'] = time.time()
-
-        # make sure there is a 'host entry'
-        if not 'host' in data.keys():
-            return 'You need to specify a value for "host."'
-
-        host = data['host']
-
-        # let's convert the strings to appropriate vars
-        for key in data:
-            data[key] = autoconvert(data[key])
-
-        hostDB[host] = data
-
-        global UPDATES
-        UPDATES += 1
-        return 'Your host {} was added.'.format(host)
+        return add_or_update(data)
 
 
 class Status():
