@@ -1,5 +1,41 @@
 $def with (nodes, stats)
 
+$code:
+    def is_list_of_pure_type(list_, type_):
+        # bool is instance of int in python
+        if type_ == int:
+            if any([isinstance(l, bool) for l in list_]):
+                return False
+        return all([isinstance(l, type_) for l in list_])
+    
+    def findminmax(list_of_num):
+        maxval = 0
+        minval = float('Inf')
+        for i in list_of_num:
+            if i > maxval:
+                maxval = i
+            if i < minval:
+                minval = i
+        return maxval, minval
+ 
+    def graph_hist(h_list):
+        output = []
+        if is_list_of_pure_type(h_list, int) or is_list_of_pure_type(h_list, float):
+            maxval, minval = findminmax(h_list)
+            output.append('<ul class="chart">')
+            for n, val in enumerate(h_list):
+                percent = int(((val-(minval/2))/float(maxval))*100)
+                output.append('<li><span style="height:{0}%" title="{1}"></span></li>'.format(percent, val))
+            output.append('</ul>')
+            return '\n'.join(output)
+
+        num = float(len(h_list))
+       
+        for i, name in enumerate(h_list):
+            alpha = int(((i) * (1/num))*255)
+            output.append('<div class="history" style="color: rgb({0},{0},{0})">{1}</div>'.format(alpha, name))
+        return '\n'.join(output)
+
 <HTML>
     <HEAD>
         <META name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -52,11 +88,7 @@ $def with (nodes, stats)
                     <UL class="list-group">
                     $for item, value in server_dict.iteritems():
                         <li class="list-group-item"><strong>$item:</strong>
-                        $#{', '.join(str(value) for value in value)}
-                        $ num = float(len(value))
-                        $for i, name in enumerate(value):
-                            $ alpha = int(((i) * (1/num))*255)
-                            <div class="history" style="color: rgb($alpha,$alpha,$alpha)">$name</div>
+                        $:graph_hist(value)
                         </li>
                     </UL>
                 </DIV>
