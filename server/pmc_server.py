@@ -33,7 +33,7 @@ class Database(object):
     def __init__(self):
         self.data = {}
         self.updates = 0
-        self.queue_count = 5
+        self.queue_count = 45
 
     def read_kv(self, id, key):
         if id in self.data.keys():
@@ -165,7 +165,7 @@ class State:
     def GET(self):
         print "\n\n\n                 ### GET ###"
 
-        html = web.template.frender('templates/stats.html', globals={"str": str})
+        html = web.template.frender('templates/stats.html', globals={"str": str, "type": type})
 
         return html(DATA.historic(), DATA.stats())
 
