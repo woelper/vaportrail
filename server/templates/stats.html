@@ -19,41 +19,49 @@ $def with (nodes, stats)
     <BR>
 
         <DIV class="container-fluid">
-            $if len(nodes) == 0:
+
+
+            $if len(nodes.keys()) == 0:
                 <i class="fa fa-power-off" aria-hidden="true"></i> No active clients registered.
    
-            
-            $for num, server_dict in enumerate(nodes):
-                $if 'host' in server_dict:
-                    $if num % 2 == 0:
-                        <DIV class="col-md-12 oddrow">
-                    $else:
-                        <DIV class="col-md-12 evenrow">
-                    <DIV class="wrapper" data-toggle="collapse" data-target="#$server_dict['id']">
-                        <div class="pmc_row_header">
-                            <i class="fa $server_dict['icon']" aria-hidden="true"></i>
-                        </div>
-                        <div class="pmc_row">
-                            $server_dict['host']
-                        </div>
-                        <div class="pmc_row_header">
-                            $if server_dict['inactive']:
-                                <i class="fa fa-ban" aria-hidden="true"></i>
-                            $else:
-                                <i class="fa fa-check" aria-hidden="true"></i>
-                        </div>
 
-                        <div class="pmc_row_header">
-                            <i class="fa fa-info-circle pushable" aria-hidden="true"></i>
-                        </div>
-                    </DIV> <!-- wrapper -->
-                    <DIV id="$server_dict['id']" class="collapse col-md-12">
-                        <UL class="list-group">
-                        $for item, value in server_dict.iteritems():
-                            <li class="list-group-item"><strong>$item:</strong> $value</li>
-                        </UL>
-                    </DIV>
+            $for num, (host, server_dict) in enumerate(nodes.iteritems()):
+                $if num % 2 == 0:
+                    <DIV class="col-md-12 oddrow">
+                $else:
+                    <DIV class="col-md-12 evenrow">
+                <DIV class="wrapper" data-toggle="collapse" data-target="#$server_dict['id'][0]">
+                    <div class="pmc_row_header">
+                        <i class="fa $server_dict['icon'][0]" aria-hidden="true"></i>
+                    </div>
+                    <div class="pmc_row">
+                        $host
+                    </div>
+                    <div class="pmc_row_header">
+                        $if server_dict['inactive'][0]:
+                            <i class="fa fa-ban" aria-hidden="true"></i>
+                        $else:
+                            <i class="fa fa-check" aria-hidden="true"></i>
+                    </div>
+
+                    <div class="pmc_row_header">
+                        <i class="fa fa-info-circle pushable" aria-hidden="true"></i>
+                    </div>
+                </DIV> <!-- wrapper -->
+                <DIV id="$server_dict['id'][0]" class="collapse col-md-12">
+                    <UL class="list-group">
+                    $for item, value in server_dict.iteritems():
+                        <li class="list-group-item"><strong>$item:</strong>
+                        $#{', '.join(str(value) for value in value)}
+                        $ num = float(len(value))
+                        $for i, name in enumerate(value):
+                            $ alpha = int(((i) * (1/num))*255)
+                            <div class="history" style="color: rgb($alpha,$alpha,$alpha)">$name</div>
+                        </li>
+                    </UL>
+                </DIV>
                 </DIV> 
+        
         </DIV> <!-- container-fluid -->
 
 
