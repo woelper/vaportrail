@@ -29,11 +29,12 @@ $code:
             output.append('</ul>')
             return '\n'.join(output)
 
+        
         num = float(len(h_list))
-       
+        output.append(str(h_list[0]))
         for i, name in enumerate(h_list):
             alpha = int(((i) * (1/num))*255)
-            output.append('<div class="history" style="color: rgb({0},{0},{0})">{1}</div>'.format(alpha, name))
+            #output.append('<div class="history" style="color: rgb({0},{0},{0})">{1}</div>'.format(alpha, name))
         return '\n'.join(output)
 
 <HTML>

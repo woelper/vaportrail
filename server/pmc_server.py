@@ -18,8 +18,6 @@ else:
     sys.path.append(webpy_location)
     import web
 
-# TODO : historical view - save state each time as list
-
 urls = ("/", "State" ,"/add", "add", '/state', 'State', '/request_port', 'request_port')
 app = web.application(urls, globals())
 PORT = 20000
@@ -60,16 +58,10 @@ class Database(object):
     def historic(self):
         return updated_host_data(self.data)
 
-
-
     def stats(self):
         return {'updates': self.updates}
 
 DATA = Database()
-
-
-# do not collect historical data from these:
-DO_NOT_TRACK = ['host', 'update_rate', 'inactive', 'id', 'icon']
 
 def boolify(s):
     """
@@ -91,8 +83,6 @@ def autoconvert(s):
         except ValueError:
             pass
     return s
-
-
 
 def updated_host_data(database):
     """
@@ -153,6 +143,7 @@ def add_or_update(value_dict):
     # as host will act as a key, we do not need to keep him around.
     del value_dict['host']
 
+    print value_dict
     # finally add host and data
     DATA.add_kv(host, value_dict)
 

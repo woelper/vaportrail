@@ -51,7 +51,6 @@ body {
   background:rgba(0, 0, 100, 0.03);
 }
 
-
 /*Hide stuff in collapsible divs on load until bootstrap is loaded*/
 .collapse {
   display: none;
@@ -71,27 +70,28 @@ ul.topnav {
     box-shadow: 0px 0px 20px 4px rgba(0,0,0,0.2);
 }
 
-ul.topnav li {float: left;}
+ul.topnav li {
+  float: left;
+}
 
 #footer {
   display: block;
-   position:fixed;
-   left:0px;
-   bottom:0px;
-   height:30px;
-   width:100%;
-   background:#333;
-   padding: 5px;
-   color: #777;
-   font-size: 0.8em;
-   margin-top: 30px;
-   box-shadow: 0px 0px 20px 4px rgba(0,0,0,0.2);
+  position:fixed;
+  left:0px;
+  bottom:0px;
+  height:30px;
+  width:100%;
+  background:#333;
+  padding: 5px;
+  color: #777;
+  font-size: 0.8em;
+  margin-top: 30px;
+  box-shadow: 0px 0px 20px 4px rgba(0,0,0,0.2);
 }
-
 
 .container-fluid{
   margin-bottom: 50px;
-  }
+}
 
 .chart{
   display:table;
@@ -101,38 +101,36 @@ ul.topnav li {float: left;}
   margin:0 auto;
   font-size: 0.7em;
   padding: 0;
-  /*border-radius: 5px;*/
 }  
 
-
  .chart li{
-    position:relative;
-    display:table-cell;
-    vertical-align:bottom;
-    height:100%;
-    background: rgba(0,0,0,0.05);
-  }
+  position:relative;
+  display:table-cell;
+  vertical-align:bottom;
+  height:100%;
+  /*background: rgba(0,0,0,0.05);*/
+}
   
 .chart span{
-    margin:0 1;
-    margin-right: 2px;
-    display: block;
-    background: rgba(0,0,0,0.15);
+  margin:0 1;
+  margin-right: 2px;
+  display: block;
+  background: rgba(0,0,0,0.15);
 }
 
 .chart ::before{
-      position:absolute;
-      left:0;right:0;top:60%;
-      padding:1px 0.7em 0;
-      display:block;
-      text-align:center;
-      content:attr(title);
-      /*word-wrap: break-word;*/
-      color: rgba(0,0,0,0.4);
-      font-size: 90%;
-      font-weight: bold;
-      transform: rotate(45deg);
-   }
+  position:absolute;
+  left:0;right:0;top:60%;
+  padding:1px 0.7em 0;
+  display:block;
+  text-align:center;
+  content:attr(title);
+  /*word-wrap: break-word;*/
+  color: rgba(0,0,0,0.4);
+  font-size: 90%;
+  font-weight: bold;
+  transform: rotate(45deg);
+}
 
 
 
