@@ -102,7 +102,6 @@ def updated_host_data(database):
             hostinfo['inactive'] = [True]
         else:
             hostinfo['inactive'] = [False]
-
         # add some human-readable timing
         hours, rest = divmod(timediff, 3600)
         minutes, seconds = divmod(rest, 60)

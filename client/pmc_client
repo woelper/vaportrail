@@ -9,7 +9,7 @@ import sys
 import multiprocessing
 import argparse
 import platform
-
+import os
 
 # TODO: add argparse to configure the parameters
 
@@ -89,17 +89,25 @@ class Client():
         return uptime
 
     @staticmethod
+    def get_free_space():
+        directory = os.curdir
+        statvfs = os.statvfs(os.curdir)
+        free_mb = statvfs.f_frsize * statvfs.f_bfree/1024/1024
+        return free_mb
+
+    @staticmethod
     def get_meminfo():
         """
         Retrieve info about memory usage.
-        returns: string
+        returns: three ints: total, used, free
         """
         mem = False
         try:
             mem = ' '.join(subprocess.check_output(['free', '-m']).splitlines()[1].split()).split()
-            mem_total = mem[1]
-            mem_used = mem[2]
-            return '{0} MB of {1} MB used'.format(mem_used, mem_total)
+            mem_total = int(mem[1])
+            mem_used = int(mem[2])
+            mem_free = mem_total - mem_used
+            return mem_total, mem_used, mem_free
         except OSError:
             return 'free -m returned an error'
 
@@ -143,10 +151,13 @@ class Client():
                 'ip': self.get_ip(),
                 'host': socket.gethostname(),
                 'uptime': self.get_uptime(),
-                'memory': self.get_meminfo(),
+                'total memory': str(self.get_meminfo()[0]) + ' MB installed',
+                'free memory (MB)': self.get_meminfo()[2],
+
                 'os': self.get_os(),
                 'cpu %': self.get_cpuinfo(),
                 'update_rate': interval,
+                'free space (MB)': self.get_free_space(),
                 'cpu type': platform.processor()
             }
 
@@ -180,11 +191,10 @@ if __name__ == '__main__':
     parser.add_argument('server', help='pmc server instance')
     parser.add_argument('--hostname', default=None, help='Set custom hostname')
     parser.add_argument('--ssh_relay', default=None, help='Set SSH tunnel server')
-
+    parser.add_argument('--rate', default=360, help='Delay in seconds before next update')
     args = parser.parse_args()
-    print args.server
-    #sys.exit(1)
     c = Client(args.server, custom_hostname=args.hostname, ssh_relay=args.ssh_relay)
     c.ssh_port = c.ask_for_port()
-    c.updateloop(360)
+    # todo check for int/float on args.rate
+    c.updateloop(float(args.rate))
 

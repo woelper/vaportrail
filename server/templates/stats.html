@@ -22,9 +22,11 @@ $code:
         output = []
         if is_list_of_pure_type(h_list, int) or is_list_of_pure_type(h_list, float):
             maxval, minval = findminmax(h_list)
+            output.append(str(h_list[0]))
             output.append('<ul class="chart">')
             for n, val in enumerate(h_list):
-                percent = int(((val-(minval/2))/float(maxval))*100)
+                minval = 0
+                percent = int(((val-(minval))/float(maxval))*100)
                 output.append('<li><span style="height:{0}%" title="{1}"></span></li>'.format(percent, val))
             output.append('</ul>')
             return '\n'.join(output)
@@ -89,6 +91,8 @@ $code:
                     <UL class="list-group">
                     $for item, value in server_dict.iteritems():
                         <li class="list-group-item"><strong>$item:</strong>
+                        $#value[0]
+                        
                         $:graph_hist(value)
                         </li>
                     </UL>
@@ -102,14 +106,10 @@ $code:
         <div id="footer">
             <i class="fa fa-bolt" aria-hidden="true"></i>
             poor man's cloud 
-            <i class="fa fa-download" aria-hidden="true"></i>
+            <i class="fa fa-github" aria-hidden="true"></i>
             <a href=http://github.com/woelper/pmc>github</a>
             <i class="fa fa-info-circle" aria-hidden="true"></i>
             $len(nodes)
-            $if len(nodes) == 1:
-                host
-            $else:
-                hosts
             tracked, $stats['updates'] updates received 
             <i class="fa fa-rocket" aria-hidden="true"></i> 
             don't panic

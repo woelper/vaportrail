@@ -113,14 +113,14 @@ ul.topnav li {
   
 .chart span{
   margin:0 1;
-  margin-right: 2px;
+  margin-right: 1px;
   display: block;
   background: rgba(0,0,0,0.15);
 }
 
-.chart ::before{
+.chart:hover ::before{
   position:absolute;
-  left:0;right:0;top:60%;
+  left:0;right:0;top:10%;
   padding:1px 0.7em 0;
   display:block;
   text-align:center;
@@ -129,7 +129,7 @@ ul.topnav li {
   color: rgba(0,0,0,0.4);
   font-size: 90%;
   font-weight: bold;
-  transform: rotate(45deg);
+  transform: rotate(90deg);
 }
 
 
