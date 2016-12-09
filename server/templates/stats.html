@@ -18,12 +18,19 @@ $code:
                 minval = i
         return maxval, minval
  
+    def graph_chart():
+        output = []
+        
     def graph_hist(h_list):
         output = []
         if is_list_of_pure_type(h_list, int) or is_list_of_pure_type(h_list, float):
             maxval, minval = findminmax(h_list)
             output.append(str(h_list[0]))
+            
+            output.append('<div class="ct-chart ct-golden-section" id="chart1"></div>')            
+            return '\n'.join(output)            
             output.append('<ul class="chart">')
+            
             for n, val in enumerate(h_list):
                 minval = 0
                 percent = int(((val-(minval))/float(maxval))*100)
@@ -33,7 +40,7 @@ $code:
 
         
         num = float(len(h_list))
-        output.append(str(h_list[0]))
+        #output.append(str(h_list[0]))
         for i, name in enumerate(h_list):
             alpha = int(((i) * (1/num))*255)
             #output.append('<div class="history" style="color: rgb({0},{0},{0})">{1}</div>'.format(alpha, name))
@@ -42,9 +49,10 @@ $code:
 <HTML>
     <HEAD>
         <META name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-        
-        <!--<LINK rel="stylesheet" href="static/bs/css/bootstrap.min.css" crossorigin="anonymous">-->
-        <!--<LINK rel="stylesheet" href="static/bs/fa/css/font-awesome.min.css">-->
+        <link rel="stylesheet" href="static/css/chartist.min.css">
+        <script src="static/js/chartist.min.js"></script>
+        <LINK rel="stylesheet" href="static/bs/css/bootstrap.min.css" crossorigin="anonymous">
+        <LINK rel="stylesheet" href="static/bs/fa/css/font-awesome.min.css">
         <LINK rel="stylesheet" href="static/custom.css"> 
         <!-- <LINK rel="icon" type="image/png" href="static/img/favicon.ico"/> -->
         <LINK rel="icon" type="image/png" href="static/img/icon_128.png" sizes="128x128">
@@ -60,6 +68,11 @@ $code:
         <DIV class="container-fluid">
 
 
+
+</script>
+
+
+
             $if len(nodes.keys()) == 0:
                 <i class="fa fa-power-off" aria-hidden="true"></i> No active clients registered.
    
@@ -69,6 +82,7 @@ $code:
                     <DIV class="col-md-12 oddrow">
                 $else:
                     <DIV class="col-md-12 evenrow">
+                
                 <DIV class="wrapper" data-toggle="collapse" data-target="#$server_dict['id'][0]">
                     <div class="pmc_row_header">
                         <i class="fa $server_dict['icon'][0]" aria-hidden="true"></i>
@@ -88,12 +102,47 @@ $code:
                     </div>
                 </DIV> <!-- wrapper -->
                 <DIV id="$server_dict['id'][0]" class="collapse col-md-12">
+                    <!--<div class="ct-chart ct-perfect-fourth" style="width: 400px;height100px;"></div>
+                    <script>var data = {labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],series: [[5, 2, 4, 2, 0]]};new Chartist.Line('.ct-chart', data);</script>-->
+
+
+
                     <UL class="list-group">
-                    $for item, value in server_dict.iteritems():
+                    $for num, (item, value) in enumerate(server_dict.iteritems()):
                         <li class="list-group-item"><strong>$item:</strong>
-                        $#value[0]
-                        
-                        $:graph_hist(value)
+                        $#:graph_hist(value)
+                        $if is_list_of_pure_type(value, int) or is_list_of_pure_type(value, float):
+                            <div class="ct-chart ct-perfect-fourth" id="$server_dict['id'][0]$num" style="height: 100px; width:100%"></div>
+                            <script>
+
+                            var options = {
+                                showPoint: false,
+                                //lineSmooth: false,
+                                width: 900,
+                                height: 100,
+                       
+                            };
+
+                            var responsiveOptions = [
+                                ['screen and (min-width: 641px) and (max-width: 1024px)', {width: 600, height: 100}],
+                                ['screen and (max-width: 640px)', {width: 250, height: 100}]
+                            ];
+
+                            new Chartist.Line('#$server_dict['id'][0]$num', {
+                                //labels: [1, 2, 3, 4],
+                                //series: [[100, 120, 180, 200]]
+                                series: [$value]
+                            }, options, responsiveOptions);
+
+                            // var c = new Chartist.Line('#$server_dict['id'][0]$num', {
+                            //     series: [$value]
+                            // });
+
+                            </script>
+
+                        $else:
+                            $value[0]
+
                         </li>
                     </UL>
                 </DIV>
@@ -118,29 +167,6 @@ $code:
         <SCRIPT src="static/js/jquery.min.js"></SCRIPT>
         <SCRIPT src="static/bs/js/bootstrap.min.js" crossorigin="anonymous"></SCRIPT>
     
-        <script>
-            var cb = function() {
-                var l = document.createElement('link'); l.rel = 'stylesheet';
-                l.href = 'static/bs/fa/css/font-awesome.min.css';
-                var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
-            };
-            var raf = requestAnimationFrame || mozRequestAnimationFrame ||
-            webkitRequestAnimationFrame || msRequestAnimationFrame;
-            if (raf) raf(cb);
-            else window.addEventListener('load', cb);
-        </script>
-
-        <script>
-            var cb = function() {
-                var l = document.createElement('link'); l.rel = 'stylesheet';
-                l.href = 'static/bs/css/bootstrap.min.css';
-                var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
-            };
-            var raf = requestAnimationFrame || mozRequestAnimationFrame ||
-            webkitRequestAnimationFrame || msRequestAnimationFrame;
-            if (raf) raf(cb);
-            else window.addEventListener('load', cb);
-        </script>
 
 
     </BODY>
