@@ -112,7 +112,7 @@ $code:
                         <li class="list-group-item"><strong>$item:</strong>
                         $#:graph_hist(value)
                         $if is_list_of_pure_type(value, int) or is_list_of_pure_type(value, float):
-                            <div class="ct-chart ct-perfect-fourth" id="$server_dict['id'][0]$num" style="height: 100px; width:100%"></div>
+                            <div class="ct-chart ct-perfect-fourth" id="a$server_dict['id'][0]$num" style="height: 100px; width:100%"></div>
                             <script>
 
                             var options = {
@@ -128,15 +128,9 @@ $code:
                                 ['screen and (max-width: 640px)', {width: 250, height: 100}]
                             ];
 
-                            new Chartist.Line('#$server_dict['id'][0]$num', {
-                                //labels: [1, 2, 3, 4],
-                                //series: [[100, 120, 180, 200]]
+                            new Chartist.Line('#a$server_dict['id'][0]$num', {
                                 series: [$value]
                             }, options, responsiveOptions);
-
-                            // var c = new Chartist.Line('#$server_dict['id'][0]$num', {
-                            //     series: [$value]
-                            // });
 
                             </script>
 

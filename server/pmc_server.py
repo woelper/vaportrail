@@ -18,7 +18,6 @@ else:
     sys.path.append(webpy_location)
     import web
 
-web.config.debug = False
 urls = ("/", "State" ,"/add", "add", '/state', 'State', '/request_port', 'request_port')
 app = web.application(urls, globals())
 PORT = 20000
