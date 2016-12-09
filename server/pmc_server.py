@@ -18,6 +18,7 @@ else:
     sys.path.append(webpy_location)
     import web
 
+web.config.debug = False
 urls = ("/", "State" ,"/add", "add", '/state', 'State', '/request_port', 'request_port')
 app = web.application(urls, globals())
 PORT = 20000
@@ -44,10 +45,14 @@ class Database(object):
         # update
         if id in self.data.keys():
             for key, value in dictionary.iteritems():
+                # this value is already in the db
                 if key in self.data[id].keys():
                     self.data[id][key] = value + self.data[id][key]
                     if len(self.data[id][key]) > self.queue_count:
                         self.data[id][key].pop()
+                # this is a new value, add separately
+                else:
+                    self.data[id][key] = value
         # create
         else:
             self.data[id] = dictionary
