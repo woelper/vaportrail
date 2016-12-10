@@ -132,6 +132,24 @@ ul.topnav li {
   transform: rotate(90deg);
 }
 
+a {
+
+   color: mediumpurple;
+}
+
+.ct-series-a .ct-line {
+  /* Set the colour of this series line */
+  stroke: rebeccapurple;
+  /* Control the thikness of your lines */
+  stroke-width: 2px;
+  /* Create a dashed line with a pattern */
+}
+
+.ct-chart{
+ background: #efefef;
+}
 
 
-
+svg.ct-chart-line{
+  width: 100% !important;
+}
