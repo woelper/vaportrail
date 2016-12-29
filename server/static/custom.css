@@ -52,8 +52,11 @@ body {
 }
 
 /*Hide stuff in collapsible divs on load until bootstrap is loaded*/
-.collapse {
-  display: none;
+.collapsde {
+  display: block;
+  
+  /*display: none;*/
+
 }
 
 ul.topnav {

@@ -8,64 +8,73 @@ import hashlib
 Web.py has a structure that dictates it can not imported as-is.
 We'll just do some sanity checks and add the folder to the path.
 """
-
-current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
-webpy_location = os.path.join(current_dir, 'webpy')
-if not os.path.isdir(webpy_location):
-    print 'please clone web.py to this folder:', current_dir
-    sys.exit(1)
-else:
-    sys.path.append(webpy_location)
+try:
     import web
+except ImportError:
+    print 'You need web.py to be importable. Either clone it to a folder called "web" in this dir or install it via pip.'
+    sys.exit(1)
 
-urls = ("/", "State" ,"/add", "add", '/state', 'State', '/request_port', 'request_port')
+# The accessible urls
+urls = ("/", "State" ,"/add", "add", '/request_port', 'request_port')
+
 app = web.application(urls, globals())
 PORT = 20000
 DEFAULT_UPDATE_RATE = 1000
 DEFAULT_ICON = 'fa-server'
+DB = {}
+STATS = {'updates': 111}
 
-class Database(object):
+def is_list_of_pure_type(list_, type_):
+    # bool is instance of int in python
+    if type_ == int:
+        if any([isinstance(l, bool) for l in list_]):
+            return False
+    return all([isinstance(l, type_) for l in list_])
+
+
+class Value(object):
     """
-    Simple Database class with history support.
+    Simple value class with history support.
     """
+    def __init__(self, val):
+        self.values = []
+        self.timestamps = []
+        self.max_values = 45
+        self.latest = None
+        self.timestamp = None
+        self.graphable = False
+        self.add(val)
+
+    def add(self, value):
+        now = time.time()
+        value = autoconvert(value)
+        print 'adding', value
+        self.latest = value
+        self.values = [value] + self.values
+        self.timestamps = [now] + self.timestamps
+        self.timestamp = now
+        if len(self.values) > self.max_values:
+            self.values.pop()
+        if is_list_of_pure_type(self.values, int) or is_list_of_pure_type(self.values, float):
+            self.graphable = True
+
+    def __repr__(self):
+        return str(self.values)
+
+
+    def serialize(self, array_of_values):
+        self.values = array_of_values
+
+    def deserialize(self):
+        return self.values
+
+
+class DataBase():
     def __init__(self):
-        self.data = {}
-        self.updates = 0
-        self.queue_count = 45
+        pass
 
-    def read_kv(self, id, key):
-        if id in self.data.keys():
-            return self.data[id][key]
 
-    def add_kv(self, id, dictionary):
-        self.updates += 1
-        dictionary = {key: [val] for (key, val) in dictionary.iteritems()}
 
-        # update
-        if id in self.data.keys():
-            for key, value in dictionary.iteritems():
-                # this value is already in the db
-                if key in self.data[id].keys():
-                    self.data[id][key] = value + self.data[id][key]
-                    if len(self.data[id][key]) > self.queue_count:
-                        self.data[id][key].pop()
-                # this is a new value, add separately
-                else:
-                    self.data[id][key] = value
-        # create
-        else:
-            self.data[id] = dictionary
-
-    def latest(self):
-        return self.data
-
-    def historic(self):
-        return updated_host_data(self.data)
-
-    def stats(self):
-        return {'updates': self.updates}
-
-DATA = Database()
 
 def boolify(s):
     """
@@ -100,20 +109,17 @@ def updated_host_data(database):
 
         # The timing logic
         now = time.time()
-        timediff = now - float(hostinfo['timestamp'][0])
+        timediff = now - float(hostinfo['timestamp'].latest)
 
-        if timediff > hostinfo['update_rate'][0]:
-            hostinfo['inactive'] = [True]
+        if timediff > hostinfo['update_rate'].latest:
+            hostinfo['inactive'] = Value(True)
         else:
-            hostinfo['inactive'] = [False]
+            hostinfo['inactive'] = Value(True)
         # add some human-readable timing
         hours, rest = divmod(timediff, 3600)
         minutes, seconds = divmod(rest, 60)
         timediffstring = '{}h {}m {}s ago'.format(int(hours), int(minutes), int(seconds))
-        hostinfo['last seen'] = [timediffstring]
-
-        # for generating DIV ids, we need a clean id string without spaces and other funky stuff
-        hostinfo['id'] = [hashlib.md5(host).hexdigest()]
+        hostinfo['last seen'] = Value(timediffstring)
 
         stat_db[host] = hostinfo
     return database
@@ -125,15 +131,19 @@ def add_or_update(value_dict):
     if not 'host' in value_dict.keys():
         return 'You need to specify a value for "host."'
 
-    # let's convert the strings to appropriate vars
-    for key in value_dict:
-        value_dict[key] = autoconvert(value_dict[key])
+    now = time.time()
 
     # Now add some mandatory stuff.
-    value_dict['timestamp'] = time.time()
+    value_dict['timestamp'] = now
+
+    host = value_dict['host']
+    # as host will act as a key, we do not need to keep him around.
+    del value_dict['host']
+
+    value_dict['id'] = 'id' + str(hashlib.md5(host).hexdigest())
 
     if 'update_rate' not in value_dict:
-            value_dict['update_rate'] = DEFAULT_UPDATE_RATE
+        value_dict['update_rate'] = DEFAULT_UPDATE_RATE
     else:
         if not isinstance(value_dict['update_rate'], int):
             value_dict['update_rate'] = DEFAULT_UPDATE_RATE
@@ -142,15 +152,23 @@ def add_or_update(value_dict):
     if 'icon' not in value_dict:
         value_dict['icon'] = DEFAULT_ICON
 
-    host = value_dict['host']
-    # as host will act as a key, we do not need to keep him around.
-    del value_dict['host']
 
-    print value_dict
+    if host not in DB:
+        DB[host] = {}
+
+    for key, value in value_dict.iteritems():
+        if key in DB[host]:
+            DB[host][key].add(value)
+        else:
+            DB[host][key] = Value(value)
+
+
+    #print value_dict
+    print 'update:', DB
     # finally add host and data
-    DATA.add_kv(host, value_dict)
-
+#    DATA.add_kv(host, value_dict)
     return 'Your host {} was added.'.format(host)
+
 
 
 
@@ -158,10 +176,11 @@ class State:
 
     def GET(self):
         print "\n\n\n                 ### GET ###"
-
         html = web.template.frender('templates/stats.html', globals={"str": str, "type": type})
-
-        return html(DATA.historic(), DATA.stats())
+        print DB
+        #return DB
+        return html(updated_host_data(DB), STATS)
+        #return html(DATA.historic(), DATA.stats())
 
 
 class request_port:
@@ -185,8 +204,6 @@ class add:
     def POST():
         data = dict(web.input())
         return add_or_update(data)
-
-
 
 
 if __name__ == "__main__":
