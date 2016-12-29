@@ -3,6 +3,7 @@ import time
 import sys
 import os
 import hashlib
+import json
 
 """
 Web.py has a structure that dictates it can not imported as-is.
@@ -15,14 +16,12 @@ except ImportError:
     sys.exit(1)
 
 # The accessible urls
-urls = ("/", "State" ,"/add", "add", '/request_port', 'request_port')
+urls = ("/", "State" ,"/add", "add", '/request_port', 'request_port', '/dump', 'Dump')
 
 app = web.application(urls, globals())
 PORT = 20000
 DEFAULT_UPDATE_RATE = 1000
 DEFAULT_ICON = 'fa-server'
-DB = {}
-STATS = {'updates': 111}
 
 def is_list_of_pure_type(list_, type_):
     # bool is instance of int in python
@@ -30,51 +29,6 @@ def is_list_of_pure_type(list_, type_):
         if any([isinstance(l, bool) for l in list_]):
             return False
     return all([isinstance(l, type_) for l in list_])
-
-
-class Value(object):
-    """
-    Simple value class with history support.
-    """
-    def __init__(self, val):
-        self.values = []
-        self.timestamps = []
-        self.max_values = 45
-        self.latest = None
-        self.timestamp = None
-        self.graphable = False
-        self.add(val)
-
-    def add(self, value):
-        now = time.time()
-        value = autoconvert(value)
-        print 'adding', value
-        self.latest = value
-        self.values = [value] + self.values
-        self.timestamps = [now] + self.timestamps
-        self.timestamp = now
-        if len(self.values) > self.max_values:
-            self.values.pop()
-        if is_list_of_pure_type(self.values, int) or is_list_of_pure_type(self.values, float):
-            self.graphable = True
-
-    def __repr__(self):
-        return str(self.values)
-
-
-    def serialize(self, array_of_values):
-        self.values = array_of_values
-
-    def deserialize(self):
-        return self.values
-
-
-class DataBase():
-    def __init__(self):
-        pass
-
-
-
 
 def boolify(s):
     """
@@ -90,85 +44,174 @@ def autoconvert(s):
     """
     Convert a string to the most probable type
     """
+
+    # No need to convert if it is already it's own type.
+    if not isinstance(s, str) and not isinstance(s, unicode):
+        return s
+
     for fn in (boolify, int, float):
         try:
+            print s, fn(s)
             return fn(s)
         except ValueError:
             pass
     return s
 
-def updated_host_data(database):
-    """
-    return up-to date data for display.
-    this should go into the database class later
-    """
 
-    # TODO: make this a little leaner
-    stat_db = {}
-    for host, hostinfo in database.iteritems():
+class Value(object):
+    """
+    Simple value class with history support.
+    """
+    def __init__(self, val):
+        self.values = []
+        self.timestamps = []
+        self.deltatimes = []
+        self.max_values = 45
+        self.latest = None
+        self.graphable = False
+        
+        # convenience: if multiple values are passed, load them all.
+        # handy for loading back a database.
+        if isinstance(val, list):
+            for v in val:
+                self.add(v)
+        else:
+            self.add(val)
 
-        # The timing logic
+    def add(self, value):
         now = time.time()
-        timediff = now - float(hostinfo['timestamp'].latest)
+        value = autoconvert(value)
+        self.latest = value
+        self.values = [value] + self.values
+        self.timestamps = [now] + self.timestamps
 
-        if timediff > hostinfo['update_rate'].latest:
-            hostinfo['inactive'] = Value(True)
-        else:
-            hostinfo['inactive'] = Value(True)
-        # add some human-readable timing
-        hours, rest = divmod(timediff, 3600)
-        minutes, seconds = divmod(rest, 60)
-        timediffstring = '{}h {}m {}s ago'.format(int(hours), int(minutes), int(seconds))
-        hostinfo['last seen'] = Value(timediffstring)
+        if len(self.values) > self.max_values:
+            self.values.pop()
+        if len(self.timestamps) > self.max_values:
+            self.timestamps.pop()
 
-        stat_db[host] = hostinfo
-    return database
+        self.deltatimes = [int(now-t) for t in self.timestamps]
+        
+        if is_list_of_pure_type(self.values, int) or is_list_of_pure_type(self.values, float):
+            self.graphable = True
+
+    def __repr__(self):
+        return 'VALUE OBJECT ' + str(self.values)
 
 
-def add_or_update(value_dict):
+    def deserialize(self, array_of_values):
+        self.values = array_of_values
 
-    # make sure there is a 'host entry'. Fail otherwise.
-    if not 'host' in value_dict.keys():
-        return 'You need to specify a value for "host."'
+    def serialize(self):
+        return self.values
 
-    now = time.time()
 
-    # Now add some mandatory stuff.
-    value_dict['timestamp'] = now
+class DataBase():
+    def __init__(self):
+        self.data = {}
+        self.stats = {'updates': 0, 'values': 0}
+        self.location = 'dump.db'
+        # self.load()
 
-    host = value_dict['host']
-    # as host will act as a key, we do not need to keep him around.
-    del value_dict['host']
+    def save(self):
+        print '\n\nSAVING'
+        #print self.data
+        serialized_data = {}
 
-    value_dict['id'] = 'id' + str(hashlib.md5(host).hexdigest())
+        for key, value in self.data.iteritems():
+            serialized_data[key] = {k: v.serialize() for k, v in value.iteritems()}
 
-    if 'update_rate' not in value_dict:
-        value_dict['update_rate'] = DEFAULT_UPDATE_RATE
-    else:
-        if not isinstance(value_dict['update_rate'], int):
+        with open(self.location, 'w') as f:
+            json.dump(serialized_data, f)
+
+    def load(self):
+        if os.path.isfile(self.location):
+            with open(self.location) as f:
+                dump_dict = json.load(f)
+            print 'LOADED DICT', dump_dict
+            for host, values in dump_dict.iteritems():
+                dump_dict[host] = {k: Value(v) for k, v in values.iteritems()}
+        
+                # for vname, vlist in values.iteritems():
+                #     v = Value(vlist)
+                #     values[vname] = v
+            self.data = dump_dict
+
+
+    def updated_host_data(self):
+        """
+        return up-to date data for display.
+        this should go into the database class later
+        """
+
+        # TODO: make this a little leaner
+        for host, hostinfo in self.data.iteritems():
+
+            # The timing logic
+            now = time.time()
+            timediff = now - float(hostinfo['timestamp'].latest)
+
+            if timediff > hostinfo['update_rate'].latest:
+                hostinfo['inactive'] = Value(True)
+            else:
+                hostinfo['inactive'] = Value(False)
+            # add some human-readable timing
+            hours, rest = divmod(timediff, 3600)
+            minutes, seconds = divmod(rest, 60)
+            timediffstring = '{}h {}m {}s ago'.format(int(hours), int(minutes), int(seconds))
+            hostinfo['last seen'] = Value(timediffstring)
+
+        return self.data
+
+
+    def add_or_update(self, value_dict):
+
+        # make sure there is a 'host entry'. Fail otherwise.
+        if not 'host' in value_dict.keys():
+            return 'You need to specify a value for "host."'
+
+        now = time.time()
+
+        # Now add some mandatory stuff.
+        value_dict['timestamp'] = now
+
+        host = value_dict['host']
+        # as host will act as a key, we do not need to keep him around.
+        del value_dict['host']
+
+        value_dict['id'] = 'id' + str(hashlib.md5(host).hexdigest())
+
+        if 'update_rate' not in value_dict:
             value_dict['update_rate'] = DEFAULT_UPDATE_RATE
-
-    # enable users to pass their icon. Set a default one if unset.
-    if 'icon' not in value_dict:
-        value_dict['icon'] = DEFAULT_ICON
-
-
-    if host not in DB:
-        DB[host] = {}
-
-    for key, value in value_dict.iteritems():
-        if key in DB[host]:
-            DB[host][key].add(value)
         else:
-            DB[host][key] = Value(value)
+            if not isinstance(value_dict['update_rate'], int):
+                value_dict['update_rate'] = DEFAULT_UPDATE_RATE
+
+        # enable users to pass their icon. Set a default one if unset.
+        if 'icon' not in value_dict:
+            value_dict['icon'] = DEFAULT_ICON
 
 
-    #print value_dict
-    print 'update:', DB
-    # finally add host and data
-#    DATA.add_kv(host, value_dict)
-    return 'Your host {} was added.'.format(host)
+        if host not in self.data:
+            self.data[host] = {}
 
+        for key, value in value_dict.iteritems():
+            if key in self.data[host]:
+                self.stats['values'] += 1
+                self.data[host][key].add(value)
+            else:
+                self.data[host][key] = Value(value)
+                self.stats['values'] += 1
+
+        #print 'update:', self.data
+        self.stats['updates'] += 1
+        return 'Your host {} was added.'.format(host)
+
+
+
+DB = DataBase()
+# Right now, this is the only point where we read from the disk. Once at startup.
+DB.load()
 
 
 
@@ -177,9 +220,8 @@ class State:
     def GET(self):
         print "\n\n\n                 ### GET ###"
         html = web.template.frender('templates/stats.html', globals={"str": str, "type": type})
-        print DB
         #return DB
-        return html(updated_host_data(DB), STATS)
+        return html(DB.updated_host_data(), DB.stats)
         #return html(DATA.historic(), DATA.stats())
 
 
@@ -189,8 +231,21 @@ class request_port:
         PORT += 1
         return PORT
 
+class Dump:
+    
+    @staticmethod
+    def GET():
+        return DB.updated_host_data()
+
 
 class add:
+
+    """
+    Adds a host with associated data. Right now, this is also the entry point fo
+    saving the database to disk. Once, this thing should not save at all, but so what. 
+    The server should run off memory as much as possible, so this just triggers when new
+    hosts are added.
+    """
 
     @staticmethod
     def GET():
@@ -198,12 +253,17 @@ class add:
         Let's support GET, too. No checking as of yet.
         """
         data = dict(web.input())
-        return add_or_update(data)
+        response = DB.add_or_update(data)
+        DB.save()
+        return response
+
 
     @staticmethod
     def POST():
         data = dict(web.input())
-        return add_or_update(data)
+        response = DB.add_or_update(data)
+        DB.save()
+        return response
 
 
 if __name__ == "__main__":

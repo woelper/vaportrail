@@ -31,7 +31,7 @@ $def with (nodes, stats)
                 <DIV class="wrapper"  onclick="toggle('$server_dict['id'].latest');">
                 
                     <div class="pmc_row_header">
-                        <i class="fa $server_dict['icon']" aria-hidden="true"></i>
+                        <i class="fa $server_dict['icon'].latest" aria-hidden="true"></i>
                     </div>
                     <div class="pmc_row">
                         $host
@@ -47,7 +47,7 @@ $def with (nodes, stats)
                         <i class="fa fa-info-circle pushable" aria-hidden="true"></i>
                     </div>
                 </DIV> <!-- wrapper -->
-                <DIV id="$server_dict['id'].latest" class="collapsde col-md-12">
+                <DIV id="$server_dict['id'].latest" class="collapse col-md-12">
                     <!--<div class="ct-chart ct-perfect-fourth" style="width: 400px;height100px;"></div>
                     <script>var data = {labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],series: [[5, 2, 4, 2, 0]]};new Chartist.Line('.ct-chart', data);</script>-->
 
@@ -56,6 +56,7 @@ $def with (nodes, stats)
                         <li class="list-group-item"><strong>$item:</strong>
                         $#:graph_hist(value)
                         $if value.graphable:
+                            $value.latest
                             <div class="ct-chart ct-perfect-fourth" id="$server_dict['id'].latest$num" style="height: 100px; width:100%"></div>
                             <script>
 
@@ -79,7 +80,7 @@ $def with (nodes, stats)
 
                             new Chartist.Line('#$server_dict['id'].latest$num', {
                                 series: [$value.values],
-                                labels: $value.timestamps
+                                labels: $value.deltatimes
                                 
                             }, options, responsiveOptions);
 
@@ -101,7 +102,7 @@ $def with (nodes, stats)
             <a href=http://github.com/woelper/pmc>github</a>
             <i class="fa fa-info-circle" aria-hidden="true"></i>
             $len(nodes)
-            tracked, $stats['updates'] updates received 
+            tracked, $stats['updates'] host updates, $stats['values'] value updates 
             <i class="fa fa-rocket" aria-hidden="true"></i> 
             don't panic
         </div>
