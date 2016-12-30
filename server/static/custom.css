@@ -140,6 +140,7 @@ a {
    color: mediumpurple;
 }
 
+
 .ct-series-a .ct-line {
   /* Set the colour of this series line */
   stroke: rebeccapurple;
@@ -149,10 +150,31 @@ a {
 }
 
 .ct-chart{
- background: #efefef;
+  background: #efefef;
+  position: relative;
+
 }
 
+.ct-series-a .ct-area{
+  fill: #707070;
+}
 
 svg.ct-chart-line{
   width: 100% !important;
+}
+
+
+[data-x-axis]::before {
+  content: attr(data-x-axis);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+
+[data-y-axis]::after {
+  content: attr(data-y-axis);
+  position: absolute;
+  /* vertical text rotation stuff */
 }

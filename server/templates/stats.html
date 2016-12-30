@@ -57,16 +57,21 @@ $def with (nodes, stats)
                         $#:graph_hist(value)
                         $if value.graphable:
                             $value.latest
-                            <div class="ct-chart ct-perfect-fourth" id="$server_dict['id'].latest$num" style="height: 100px; width:100%"></div>
+                            <div class="ct-chart ct-perfect-fourth" data-x-axis="" data-y-axis="" id="$server_dict['id'].latest$num" style="height: 100px; width:100%"></div>
                             <script>
+
 
                             var options = {
                                 showPoint: false,
                                 lineSmooth: false,
                                 width: 900,
                                 height: 100,
+                                showArea: true,
                                 axisX: {
-                                    showGrid: false
+                                    showGrid: false,
+                                    labelInterpolationFnc: function skipLabels(value, index) {
+                                        return index % $int(float(len(value.values))/10)  === 0 ? value : null;
+                                    }
                                 },
                                 axisY: {
                                     showGrid: false
