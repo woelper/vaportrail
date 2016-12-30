@@ -70,7 +70,7 @@ $def with (nodes, stats)
                                 axisX: {
                                     showGrid: false,
                                     labelInterpolationFnc: function skipLabels(value, index) {
-                                        return index % $int(float(len(value.values))/10)  === 0 ? value : null;
+                                        return index % $int(float(len(value.values))/5)  === 0 ? value : null;
                                     }
                                 },
                                 axisY: {
@@ -85,7 +85,7 @@ $def with (nodes, stats)
 
                             new Chartist.Line('#$server_dict['id'].latest$num', {
                                 series: [$value.values],
-                                labels: $value.deltatimes
+                                labels: $:value.deltatimes
                                 
                             }, options, responsiveOptions);
 

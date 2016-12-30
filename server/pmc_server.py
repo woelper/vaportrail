@@ -58,25 +58,43 @@ def autoconvert(s):
     return s
 
 
+def human_timediff(timestamp):
+    now = time.time()
+    timediff = now - timestamp
+    print now, timestamp
+    hours, rest = divmod(timediff, 3600)
+    minutes, seconds = divmod(rest, 60)
+
+    if hours != 0:
+        return '{}h {}m {}s'.format(int(hours), int(minutes), int(seconds))
+    else:
+        if minutes != 0:
+            return '{}m {}s'.format(int(minutes), int(seconds))
+        else:
+            return '{}s'.format(int(seconds))
+    # return timediff
+    # return '{}h {}m {}s ago'.format(int(hours), int(minutes), int(seconds))
+
+
 class Value(object):
     """
     Simple value class with history support.
     """
-    def __init__(self, val):
+    def __init__(self, val=None):
         self.values = []
         self.timestamps = []
         self.deltatimes = []
         self.max_values = 45
         self.latest = None
         self.graphable = False
-        
-        # convenience: if multiple values are passed, load them all.
-        # handy for loading back a database.
-        if isinstance(val, list):
-            for v in val:
-                self.add(v)
-        else:
+        if val is not None:
             self.add(val)
+
+    def refresh(self):
+        self.deltatimes = [human_timediff(t) for t in self.timestamps]
+        #print self.deltatimes
+        #self.deltatimes = self.timestamps
+
 
     def add(self, value):
         now = time.time()
@@ -90,7 +108,7 @@ class Value(object):
         if len(self.timestamps) > self.max_values:
             self.timestamps.pop()
 
-        self.deltatimes = [int(now-t) for t in self.timestamps]
+        #self.deltatimes = [human_timediff(t) for t in self.timestamps]
         
         if is_list_of_pure_type(self.values, int) or is_list_of_pure_type(self.values, float):
             self.graphable = True
@@ -99,11 +117,16 @@ class Value(object):
         return 'VALUE OBJECT ' + str(self.values)
 
 
-    def deserialize(self, array_of_values):
-        self.values = array_of_values
+    def deserialize(self, list_of_values, list_of_timestamps):
+        self.values = list_of_values
+        self.timestamps = list_of_timestamps
+        self.latest = list_of_values[0]
+        if is_list_of_pure_type(self.values, int) or is_list_of_pure_type(self.values, float):
+            self.graphable = True
+        
 
     def serialize(self):
-        return self.values
+        return [self.values, self.timestamps]
 
 
 class DataBase():
@@ -111,7 +134,6 @@ class DataBase():
         self.data = {}
         self.stats = {'updates': 0, 'values': 0}
         self.location = 'dump.db'
-        # self.load()
 
     def save(self):
         print '\n\nSAVING'
@@ -122,7 +144,7 @@ class DataBase():
             serialized_data[key] = {k: v.serialize() for k, v in value.iteritems()}
 
         with open(self.location, 'w') as f:
-            json.dump(serialized_data, f)
+            json.dump(serialized_data, f, indent=4)
 
     def load(self):
         if os.path.isfile(self.location):
@@ -130,11 +152,12 @@ class DataBase():
                 dump_dict = json.load(f)
             print 'LOADED DICT', dump_dict
             for host, values in dump_dict.iteritems():
-                dump_dict[host] = {k: Value(v) for k, v in values.iteritems()}
-        
-                # for vname, vlist in values.iteritems():
-                #     v = Value(vlist)
-                #     values[vname] = v
+                #dump_dict[host] = {k: Value(v) for k, v in values.iteritems()}
+                for vname, vlist in values.iteritems():
+                    v = Value()
+                    v.deserialize(vlist[0], vlist[1])
+                    
+                    values[vname] = v
             self.data = dump_dict
 
 
@@ -149,17 +172,25 @@ class DataBase():
 
             # The timing logic
             now = time.time()
-            timediff = now - float(hostinfo['timestamp'].latest)
+            print 'latest:', hostinfo['timestamp'].latest
+            latest_stamp = float(hostinfo['timestamp'].latest)
+            timediff = now - latest_stamp
+#            timediff = now - float(hostinfo['timestamp'].latest)
+
 
             if timediff > hostinfo['update_rate'].latest:
                 hostinfo['inactive'] = Value(True)
             else:
                 hostinfo['inactive'] = Value(False)
-            # add some human-readable timing
-            hours, rest = divmod(timediff, 3600)
-            minutes, seconds = divmod(rest, 60)
-            timediffstring = '{}h {}m {}s ago'.format(int(hours), int(minutes), int(seconds))
-            hostinfo['last seen'] = Value(timediffstring)
+
+            hostinfo['last seen'] = Value(human_timediff(latest_stamp))
+            #hostinfo['last seen'] = Value(timediffstring)
+
+            for val in hostinfo.itervalues():
+                #pass
+                val.refresh()
+            #self.deltatimes = [human_timediff(t) for t in self.timestamps]
+            
 
         return self.data
 
