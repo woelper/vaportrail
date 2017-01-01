@@ -98,7 +98,7 @@ class Value(object):
 
     def add(self, value):
         now = time.time()
-        value = autoconvert(value)
+        #value = autoconvert(value)
         self.latest = value
         self.values = [value] + self.values
         self.timestamps = [now] + self.timestamps
@@ -190,12 +190,15 @@ class DataBase():
                 #pass
                 val.refresh()
             #self.deltatimes = [human_timediff(t) for t in self.timestamps]
-            
 
         return self.data
 
 
     def add_or_update(self, value_dict):
+
+
+        value_dict = {k: autoconvert(v) for (k, v) in value_dict.iteritems()}
+
 
         # make sure there is a 'host entry'. Fail otherwise.
         if not 'host' in value_dict.keys():
@@ -213,15 +216,16 @@ class DataBase():
         value_dict['id'] = 'id' + str(hashlib.md5(host).hexdigest())
 
         if 'update_rate' not in value_dict:
+            # set default update rat if not given
             value_dict['update_rate'] = DEFAULT_UPDATE_RATE
         else:
+            value_dict['update_rate'] = autoconvert(value_dict['update_rate'])
             if not isinstance(value_dict['update_rate'], int):
                 value_dict['update_rate'] = DEFAULT_UPDATE_RATE
 
         # enable users to pass their icon. Set a default one if unset.
         if 'icon' not in value_dict:
             value_dict['icon'] = DEFAULT_ICON
-
 
         if host not in self.data:
             self.data[host] = {}
