@@ -16,7 +16,7 @@ except ImportError:
     sys.exit(1)
 
 # The accessible urls
-urls = ("/", "State" ,"/add", "add", '/request_port', 'request_port', '/dump', 'Dump')
+urls = ("/", "State" ,"/add", "add", '/request_port', 'request_port', '/dump', 'Dump', '/dash', 'Dashboard')
 
 app = web.application(urls, globals())
 PORT = 20000
@@ -51,11 +51,11 @@ def autoconvert(s):
 
     for fn in (boolify, int, float):
         try:
-            print s, fn(s)
+            #print s, fn(s)
             return fn(s)
         except ValueError:
             pass
-    return s
+    return str(s)
 
 
 def human_timediff(timestamp):
@@ -160,6 +160,13 @@ class DataBase():
                     values[vname] = v
             self.data = dump_dict
 
+    def serialize(self):
+        print 'DUMPING JSON'
+        serialized_data = {}
+        for key, value in self.data.iteritems():
+            serialized_data[key] = {k: v.serialize() for k, v in value.iteritems()}
+        return json.dumps(serialized_data)
+
 
     def updated_host_data(self):
         """
@@ -259,6 +266,11 @@ class State:
         return html(DB.updated_host_data(), DB.stats)
         #return html(DATA.historic(), DATA.stats())
 
+class Dashboard:
+    def GET(self):
+        html = web.template.frender('templates/dash.html', globals={"str": str, "type": type})
+        return html(DB.updated_host_data(), DB.stats)
+    
 
 class request_port:
     def GET(self):
@@ -270,7 +282,7 @@ class Dump:
     
     @staticmethod
     def GET():
-        return DB.updated_host_data()
+        return DB.serialize()
 
 
 class add:
