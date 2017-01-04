@@ -1,0 +1,25 @@
+.stats {
+    margin-top: 50px;
+}
+/* CHART STUFF */
+.ct-series-a .ct-line {
+  stroke: rebeccapurple;
+  stroke-width: 2px;
+}
+.ct-chart{
+  background: #efefef;
+  position: relative;
+}
+.ct-series-a .ct-area{
+  
+  fill: #707070;
+}
+
+.ct-chart-line {
+  margin-top: 20px;
+  margin-left: 5px;
+}
+
+.dataitem {
+  margin: 10px;
+}

@@ -61,7 +61,7 @@ def autoconvert(s):
 def human_timediff(timestamp):
     now = time.time()
     timediff = now - timestamp
-    print now, timestamp
+    #print now, timestamp
     hours, rest = divmod(timediff, 3600)
     minutes, seconds = divmod(rest, 60)
 
@@ -126,7 +126,7 @@ class Value(object):
         
 
     def serialize(self):
-        return [self.values, self.timestamps]
+        return [self.values, self.timestamps, self.graphable]
 
 
 class DataBase():
@@ -160,15 +160,17 @@ class DataBase():
                     values[vname] = v
             self.data = dump_dict
 
-    def serialize(self):
-        print 'DUMPING JSON'
+    def serialize(self, keyfilter=None):
+        #print 'DUMPING JSON'
         serialized_data = {}
-        for key, value in self.data.iteritems():
+
+        #for key, value in self.data.iteritems():
+        for key, value in self.updated_host_data(solo=keyfilter).iteritems():
             serialized_data[key] = {k: v.serialize() for k, v in value.iteritems()}
-        return json.dumps(serialized_data)
+        return serialized_data
 
 
-    def updated_host_data(self):
+    def updated_host_data(self, solo=None):
         """
         return up-to date data for display.
         this should go into the database class later
@@ -176,10 +178,13 @@ class DataBase():
 
         # TODO: make this a little leaner
         for host, hostinfo in self.data.iteritems():
+            if solo is not None:
+                if host != solo:
+                    continue
 
             # The timing logic
             now = time.time()
-            print 'latest:', hostinfo['timestamp'].latest
+            #print 'latest:', hostinfo['timestamp'].latest
             latest_stamp = float(hostinfo['timestamp'].latest)
             timediff = now - latest_stamp
 #            timediff = now - float(hostinfo['timestamp'].latest)
@@ -282,7 +287,15 @@ class Dump:
     
     @staticmethod
     def GET():
-        return DB.serialize()
+        data = dict(web.input())
+        web.header('Content-Type', 'application/json')
+        try:
+            host = data['host']
+            d = DB.serialize()[host]
+            return json.dumps(d)
+        except Exception as e:
+            return json.dumps(DB.serialize())
+            #return DB.serialize()
 
 
 class add:
@@ -293,24 +306,23 @@ class add:
     The server should run off memory as much as possible, so this just triggers when new
     hosts are added.
     """
+    def add_host(self, data):
+        if 'host' in data.keys():
+            if data['host'] != '':
+                return DB.add_or_update(data)
+        return 'Host must be given and not an empty string.'
 
-    @staticmethod
-    def GET():
+    def GET(self):
         """
         Let's support GET, too. No checking as of yet.
         """
         data = dict(web.input())
-        response = DB.add_or_update(data)
-        DB.save()
-        return response
+        return self.add_host(data)
 
 
-    @staticmethod
-    def POST():
+    def POST(self):
         data = dict(web.input())
-        response = DB.add_or_update(data)
-        DB.save()
-        return response
+        return self.add_host(data)
 
 
 if __name__ == "__main__":
