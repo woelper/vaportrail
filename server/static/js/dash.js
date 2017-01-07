@@ -1,4 +1,9 @@
 var HOST = null;
+var BLOCKED = false;
+var STATS = {};
+
+
+
 
 String.prototype.hashCode = function() {
   var hash = 0, i, chr, len;
@@ -11,9 +16,23 @@ String.prototype.hashCode = function() {
   return 'id' + hash;
 };
 
+
+function niceUnixTime(timestamp) {
+    var date = new Date(timestamp*1000);
+    var hours = date.getHours();
+    var minutes = "0" + date.getMinutes();
+    var seconds = "0" + date.getSeconds();
+
+    var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+    return formattedTime;
+}
+
+
 function setCurrentHost(host) {
     HOST = host;
     drawToContainer('', 'main');
+    drawToContainer('<h5>' + HOST + '</h5>', 'hostname');
+    
     fetch_and_update(HOST);
 }
 
@@ -61,9 +80,14 @@ graphOpts = {
 };
 
 
-function updateData(data) {
+function updateGraphs(data) {
+
+    
+
+    //BLOCKED = true;
 
     for (var value in data) {
+        if (BLOCKED) {return;}
         if (value) {
             var id = value.hashCode();
             graphable = data[value][2];
@@ -80,9 +104,17 @@ function updateData(data) {
 
     // GRAPHS    
     for (var value in data) {
+        if (BLOCKED) { return; }
+        
+        var nicetime = [];
+        
+        for (entry in data[value][1]) {
+            nicetime.push( niceUnixTime(data[value][1][entry]) );
+        }
+
         var id = value.hashCode();
         if (data[value][2]) {
-            var dta = { labels: data[value][1], series: [data[value][0]] };
+            var dta = { labels: nicetime, series: [data[value][0]] };
             var chart = document.querySelector('#' + id);
             if (chart) {
                 // UPDATE THE CHART
@@ -96,6 +128,7 @@ function updateData(data) {
         }
     }
     // END GRAPHS
+    //BLOCKED = false;
 }
 
 
@@ -112,34 +145,69 @@ function get_hosts() {
         }
         drawToContainer(hoststring, 'hostlist');
         
-        if (lasthost) {
-            setCurrentHost(lasthost);
+        // set current host if unset
+        if (! HOST) {
+            if (lasthost) {
+                setCurrentHost(lasthost);
+            }
         }
+
+        // make sure we have an initial dataset        
+        fetch_data();
+
     };
     xhr.send();
 }
 
 
-function fetch_and_update(host) {
+function fetch_and_update() {
+    if (! HOST) { return }
+    
+    //console.log(STATS);
+
+    // var xhr = new XMLHttpRequest();
+    // xhr.open('GET', '/dump?host=' + HOST);
+    
+    // xhr.onload = function() {
+    //     var data = JSON.parse(xhr.responseText);
+    //     updateGraphs(data);
+    // };
+    // xhr.send();
+
+    if (STATS) {
+        updateGraphs(STATS);
+    }
+
+}
+
+function fetch_data() {
+
+    if (! HOST) { return }
+
+    BLOCKED = true;
+    
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/dump?host=' + host);
+    xhr.open('GET', '/dump?host=' + HOST);
     
     xhr.onload = function() {
         var data = JSON.parse(xhr.responseText);
-        updateData(data);
+        //updateGraphs(data);
+        STATS = data;
+        BLOCKED = false;
     };
     xhr.send();
 }
 
 
-function update_data() {
-    if (HOST) {
-        fetch_and_update(HOST);
-    }
-}
 
 
 get_hosts();
 
-var intervalID = setInterval(function(){ update_data() }, 500);
+var intervalID = setInterval(function(){ fetch_and_update() }, 100);
+// hosts need a lower update interval
+var intervalID = setInterval(function () { get_hosts() }, 10000);
+
+var intervalID = setInterval(function(){ fetch_data() }, 900);
+
+
 
