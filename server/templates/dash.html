@@ -18,17 +18,26 @@ $def with (nodes, stats)
     <!--<button onClick="update_data()" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
     update
     </button>-->
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer">
-        <div class="mdl-layout__drawer">
-            <span class="mdl-layout-title">
-        hosts
-        </span>
-            <nav id="hostlist" class="mdl-navigation">
-            <a class="mdl-navigation__link" href="">
+
+
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
+    <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+            <div id="hostname" class="mdl-textfield">
                 <div class="mdl-spinner mdl-js-spinner is-active"></div>
-            </a>
+            </div>
+        </div>
+    </header>
+
+        <div class="mdl-layout__drawer">
+            <span class="mdl-layout-title">Hosts</span>
+            <nav id="hostlist" class="mdl-navigation">
+                <a class="mdl-navigation__link" href="">
+                    <div class="mdl-spinner mdl-js-spinner is-active"></div>
+                </a>
             </nav>
         </div>
+
         <main class="mdl-layout__content">
             <div class="page-content">
                 <div class="stats" id="main">
@@ -36,7 +45,6 @@ $def with (nodes, stats)
                 </div>
             </div>
         </main>
-    </div>
     </BODY>
     <script src="static/js/dash.js"></script>
     <link rel="stylesheet" href="static/dash.css"> 

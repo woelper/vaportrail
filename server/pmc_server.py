@@ -301,15 +301,17 @@ class Dump:
 class add:
 
     """
-    Adds a host with associated data. Right now, this is also the entry point fo
-    saving the database to disk. Once, this thing should not save at all, but so what. 
+    Adds a host with associated data. Right now, this is also the entry point for
+    saving the database to disk. This thing should not save at all, but so what. 
     The server should run off memory as much as possible, so this just triggers when new
     hosts are added.
     """
     def add_host(self, data):
+        # TODO add more sanity checks here
         if 'host' in data.keys():
             if data['host'] != '':
                 return DB.add_or_update(data)
+                # DB.save()
         return 'Host must be given and not an empty string.'
 
     def GET(self):
