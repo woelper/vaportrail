@@ -1,8 +1,5 @@
 var HOST = null;
-var BLOCKED = false;
 var STATS = {};
-
-
 
 
 String.prototype.hashCode = function() {
@@ -33,7 +30,8 @@ function setCurrentHost(host) {
     drawToContainer('', 'main');
     drawToContainer('<h5>' + HOST + '</h5>', 'hostname');
     
-    fetch_and_update(HOST);
+    if (STATS) { updateGraphs(STATS[HOST]); }
+    //fetch_and_update(HOST);
 }
 
 function drawToContainer(data, container) {
@@ -87,16 +85,15 @@ function updateGraphs(data) {
     //BLOCKED = true;
 
     for (var value in data) {
-        if (BLOCKED) {return;}
         if (value) {
             var id = value.hashCode();
             graphable = data[value][2];
             if (graphable) {
-                currentDiv = value;
+                currentDiv = '<b>' + value + '</b> ' + data[value][0][0];
                 addOrUpdateDiv('main', id, currentDiv, "ct-chart ct-perfect-fourth dataitem", "height: 100px; width:100%");
 
             } else {
-                currentDiv = value + ': ' + data[value][0][0];
+                currentDiv = '<b>' + value + '</b>: ' + data[value][0][0];
                 addOrUpdateDiv('main', id, currentDiv, "dataitem", "");
             }
         }
@@ -104,7 +101,6 @@ function updateGraphs(data) {
 
     // GRAPHS    
     for (var value in data) {
-        if (BLOCKED) { return; }
         
         var nicetime = [];
         
@@ -175,7 +171,7 @@ function fetch_and_update() {
     // xhr.send();
 
     if (STATS) {
-        updateGraphs(STATS);
+        updateGraphs(STATS[HOST]);
     }
 
 }
@@ -184,16 +180,16 @@ function fetch_data() {
 
     if (! HOST) { return }
 
-    BLOCKED = true;
     
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/dump?host=' + HOST);
+    xhr.open('GET', '/dump');
+    //xhr.open('GET', '/dump?host=' + HOST);
+
     
     xhr.onload = function() {
         var data = JSON.parse(xhr.responseText);
         //updateGraphs(data);
         STATS = data;
-        BLOCKED = false;
     };
     xhr.send();
 }
@@ -203,11 +199,11 @@ function fetch_data() {
 
 get_hosts();
 
-var intervalID = setInterval(function(){ fetch_and_update() }, 100);
+var intervalID = setInterval(function(){ fetch_and_update() }, 500);
 // hosts need a lower update interval
 var intervalID = setInterval(function () { get_hosts() }, 10000);
 
-var intervalID = setInterval(function(){ fetch_data() }, 900);
+var intervalID = setInterval(function(){ fetch_data() }, 1000);
 
 
 
