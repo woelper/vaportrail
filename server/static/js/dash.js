@@ -26,10 +26,14 @@ function niceUnixTime(timestamp) {
 
 
 function setCurrentHost(host) {
+    if (host == HOST) {
+        if (STATS) { updateGraphs(STATS[HOST]); }
+        return;
+    }
+
     HOST = host;
     drawToContainer('', 'main');
     drawToContainer('<h5>' + HOST + '</h5>', 'hostname');
-    
     if (STATS) { updateGraphs(STATS[HOST]); }
     //fetch_and_update(HOST);
 }
@@ -79,11 +83,15 @@ graphOpts = {
 
 
 function updateGraphs(data) {
-
+    var hoststring = '';
+    for (var host in STATS) {
+        lasthost = host;
+        hoststring += '<a href="" class=\"mdl-navigation__link\" onclick=\'setCurrentHost(\"' + host + '\"); return false;\'>' + host +'</a>'
+    }
+    drawToContainer(hoststring, 'hostlist');
+        if (! HOST) {return;}
+   
     
-
-    //BLOCKED = true;
-
     for (var value in data) {
         if (value) {
             var id = value.hashCode();
@@ -102,7 +110,8 @@ function updateGraphs(data) {
     // GRAPHS    
     for (var value in data) {
         
-        var nicetime = [];
+       //if (! graphable) {continue;} 
+       var nicetime = [];
         
         for (entry in data[value][1]) {
             nicetime.push( niceUnixTime(data[value][1][entry]) );
@@ -116,94 +125,85 @@ function updateGraphs(data) {
                 // UPDATE THE CHART
                 if (chart.__chartist__) {
                     chart.__chartist__.update(dta)
+                    //console.log('upd chart');
                 } else {
                     // WE NEED TO CREATE THE CHART
+                    //console.log('init chart');
                     new Chartist.Line('#' + id, dta, graphOpts);
                 }
             }
         }
     }
     // END GRAPHS
-    //BLOCKED = false;
 }
 
 
-function get_hosts() {
+function get_all_stats() {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/dump');
     xhr.onload = function() {
         data = JSON.parse(xhr.responseText);
-        var hoststring = '';
-        var lasthost = null;
-        for (var host in data) {
-            lasthost = host;
-            hoststring += '<a href="" class=\"mdl-navigation__link\" onclick=\'setCurrentHost(\"' + host + '\"); return false;\'>' + host +'</a>'
-        }
-        drawToContainer(hoststring, 'hostlist');
-        
-        // set current host if unset
-        if (! HOST) {
-            if (lasthost) {
-                setCurrentHost(lasthost);
-            }
-        }
-
-        // make sure we have an initial dataset        
-        fetch_data();
-
-    };
-    xhr.send();
-}
-
-
-function fetch_and_update() {
-    if (! HOST) { return }
-    
-    //console.log(STATS);
-
-    // var xhr = new XMLHttpRequest();
-    // xhr.open('GET', '/dump?host=' + HOST);
-    
-    // xhr.onload = function() {
-    //     var data = JSON.parse(xhr.responseText);
-    //     updateGraphs(data);
-    // };
-    // xhr.send();
-
-    if (STATS) {
-        updateGraphs(STATS[HOST]);
-    }
-
-}
-
-function fetch_data() {
-
-    if (! HOST) { return }
-
-    
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/dump');
-    //xhr.open('GET', '/dump?host=' + HOST);
-
-    
-    xhr.onload = function() {
-        var data = JSON.parse(xhr.responseText);
-        //updateGraphs(data);
         STATS = data;
     };
     xhr.send();
 }
 
 
+function redraw_data() {
+    if (! HOST) { return }
+    if (STATS) {
+        updateGraphs(STATS[HOST]);
+    }
+}
 
 
-get_hosts();
+function fetch_data() {
+    if (! HOST) { return }
+    var xhr = new XMLHttpRequest();
+    //xhr.open('GET', '/dump');
+    xhr.open('GET', '/dump?host=' + HOST);
+    xhr.onload = function() {
+        var data = JSON.parse(xhr.responseText);
+        //STATS = data;
+        STATS[HOST] = data;
+    };
+    xhr.send();
+}
 
-var intervalID = setInterval(function(){ fetch_and_update() }, 500);
+
+function main() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/dump');
+    xhr.onload = function() {
+        data = JSON.parse(xhr.responseText);
+        STATS = data;
+        var hosts = Object.keys(STATS);
+        if (hosts.length > 0) {HOST=hosts[0];}
+        console.log(HOST);
+        //setCurrentHost(HOST);
+        drawToContainer('', 'main');
+        drawToContainer('<h5>' + HOST + '</h5>', 'hostname');
+ 
+        if (STATS) { updateGraphs(STATS[HOST]); }
+        //updateGraphs(STATS[HOST]);
+        var intervalID = setInterval(function(){ redraw_data() }, 2000);
+        var intervalID = setInterval(function () { get_all_stats() }, 10000);
+        var intervalID = setInterval(function(){ fetch_data() }, 3500);
+
+    };
+    xhr.send();
+
+}
+
+
+main();
+//get_hosts();
+
+//var intervalID = setInterval(function(){ redraw_data() }, 200);
 // hosts need a lower update interval
-var intervalID = setInterval(function () { get_hosts() }, 10000);
+//var intervalID = setInterval(function () { get_hosts() }, 10000);
 
-var intervalID = setInterval(function(){ fetch_data() }, 1000);
+//var intervalID = setInterval(function(){ fetch_data() }, 1500);
 
 
 

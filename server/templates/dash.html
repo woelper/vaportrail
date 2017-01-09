@@ -23,8 +23,13 @@ $def with (nodes, stats)
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
     <header class="mdl-layout__header">
         <div class="mdl-layout__header-row">
-            <div id="hostname" class="mdl-textfield">
+            <div id="hostname">
                 <div class="mdl-spinner mdl-js-spinner is-active"></div>
+            </div>
+            <div id="refreshslider" >    
+                <p style="width:300px">
+                    <input class="mdl-slider mdl-js-slider" type="range" id="s1" min="1" max="10" value="4" step="1">
+                </p>
             </div>
         </div>
     </header>
