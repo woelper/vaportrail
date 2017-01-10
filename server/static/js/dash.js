@@ -1,6 +1,6 @@
 var HOST = null;
 var STATS = {};
-
+var DATAUPDATEID = 0;
 
 String.prototype.hashCode = function() {
   var hash = 0, i, chr, len;
@@ -33,7 +33,7 @@ function setCurrentHost(host) {
 
     HOST = host;
     drawToContainer('', 'main');
-    drawToContainer('<h5>' + HOST + '</h5>', 'hostname');
+    drawToContainer(HOST, 'hostname');
     if (STATS) { updateGraphs(STATS[HOST]); }
     //fetch_and_update(HOST);
 }
@@ -170,6 +170,14 @@ function fetch_data() {
     xhr.send();
 }
 
+function changeInterval(interval) {
+  
+    var ms = Number(interval) * 400 
+    clearInterval(DATAUPDATEID);
+    DATAUPDATEID = setInterval(function(){ fetch_data() }, ms);
+    console.log(ms);
+}
+
 
 function main() {
     var xhr = new XMLHttpRequest();
@@ -182,20 +190,26 @@ function main() {
         console.log(HOST);
         //setCurrentHost(HOST);
         drawToContainer('', 'main');
-        drawToContainer('<h5>' + HOST + '</h5>', 'hostname');
+        drawToContainer(HOST, 'hostname');
  
         if (STATS) { updateGraphs(STATS[HOST]); }
         //updateGraphs(STATS[HOST]);
-        var intervalID = setInterval(function(){ redraw_data() }, 2000);
+        var intervalID = setInterval(function(){ redraw_data() }, 800);
         var intervalID = setInterval(function () { get_all_stats() }, 10000);
-        var intervalID = setInterval(function(){ fetch_data() }, 3500);
+        DATAUPDATEID = setInterval(function(){ fetch_data() }, 10000);
 
     };
     xhr.send();
 
 }
 
-
+/*
+var slider = document.getElementById('slider');
+slider.onchange = function(){
+   console.log(slider.value);
+   changeInterval(slider.value);
+}
+*/
 main();
 //get_hosts();
 

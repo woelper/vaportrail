@@ -1,5 +1,5 @@
 $def with (nodes, stats)
-
+<!doctype html>
 
 <HTML>
     <HEAD>
@@ -7,30 +7,21 @@ $def with (nodes, stats)
          <link rel="stylesheet" href="static/css/chartist.min.css"> 
          <script src="static/js/chartist.min.js"></script> 
         <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-        <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+        <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.red-blue.min.css" />
         <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-        <!-- <script src="https://unpkg.com/vue/dist/vue.js"></script> -->
         <!--<LINK rel="stylesheet" href="static/bs/fa/css/font-awesome.min.css">-->
         <LINK rel="icon" type="image/png" href="static/img/icon_128.png" sizes="128x128">
     </HEAD>
 
 <BODY>
-    <!--<button onClick="update_data()" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
-    update
-    </button>-->
 
 
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
     <header class="mdl-layout__header">
         <div class="mdl-layout__header-row">
-            <div id="hostname">
+            <span class "mdl-layout-title" id="hostname">
                 <div class="mdl-spinner mdl-js-spinner is-active"></div>
-            </div>
-            <div id="refreshslider" >    
-                <p style="width:300px">
-                    <input class="mdl-slider mdl-js-slider" type="range" id="s1" min="1" max="10" value="4" step="1">
-                </p>
-            </div>
+            </span>
         </div>
     </header>
 
@@ -40,8 +31,17 @@ $def with (nodes, stats)
                 <a class="mdl-navigation__link" href="">
                     <div class="mdl-spinner mdl-js-spinner is-active"></div>
                 </a>
+            
+
             </nav>
-        </div>
+            <div class='options'>
+            Refresh delay
+            <!-- <input id="slider" type="range" min="1" max="20" value="10" /> -->
+            <input id="slider-interval" class="mdl-slider mdl-js-slider" type="range" min="1" max="20" value="10" tabindex="0" oninput="changeInterval(this.value);interval.text=this.value">
+            <div id="interval"></div>
+            </div>
+
+    </div>
 
         <main class="mdl-layout__content">
             <div class="page-content">

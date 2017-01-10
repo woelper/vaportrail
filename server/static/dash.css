@@ -23,3 +23,11 @@
 .dataitem {
   margin: 10px;
 }
+
+.options {
+margin-left: 16%;
+}
+
+.mdl-slider {
+/*margin: 0;*/
+}
