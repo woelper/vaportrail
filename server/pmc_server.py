@@ -265,7 +265,6 @@ DB.load()
 class State:
 
     def GET(self):
-        print "\n\n\n                 ### GET ###"
         html = web.template.frender('templates/stats.html', globals={"str": str, "type": type})
         #return DB
         return html(DB.updated_host_data(), DB.stats)
@@ -274,8 +273,8 @@ class State:
 class Dashboard:
     def GET(self):
         html = web.template.frender('templates/dash.html', globals={"str": str, "type": type})
-        return html(DB.updated_host_data(), DB.stats)
-    
+        return html()
+
 
 class request_port:
     def GET(self):
@@ -298,13 +297,15 @@ class Dump:
             #return DB.serialize()
 
 
+class Save:
+    def GET(self):
+        DB.save()
+
+
 class add:
 
     """
-    Adds a host with associated data. Right now, this is also the entry point for
-    saving the database to disk. This thing should not save at all, but so what. 
-    The server should run off memory as much as possible, so this just triggers when new
-    hosts are added.
+    Adds a host with associated data.
     """
     def add_host(self, data):
         # TODO add more sanity checks here

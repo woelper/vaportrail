@@ -1,4 +1,4 @@
-var HOST = null;
+var SELECTED_HOST = null;
 var STATS = {};
 var DATAUPDATEID = 0;
 
@@ -15,6 +15,16 @@ String.prototype.hashCode = function() {
 
 
 function niceUnixTime(timestamp) {
+    var date = new Date(Number(timestamp)*1000);
+    var hours = date.getHours();
+    var minutes = "0" + date.getMinutes();
+    var seconds = "0" + date.getSeconds();
+
+    var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+    return formattedTime;
+}
+
+function niceUnixTimeDelta(timestamp) {
     var date = new Date(timestamp*1000);
     var hours = date.getHours();
     var minutes = "0" + date.getMinutes();
@@ -24,17 +34,26 @@ function niceUnixTime(timestamp) {
     return formattedTime;
 }
 
+function displayOptions(_id) {
+
+    element = document.getElementById(_id);
+    if (element.style.display === 'none') {
+        element.style.display = 'block';
+    } else {
+        element.style.display = 'none';
+    }
+}
 
 function setCurrentHost(host) {
-    if (host == HOST) {
-        if (STATS) { updateGraphs(STATS[HOST]); }
+    if (host == SELECTED_HOST) {
+        if (STATS) { updateGraphs(STATS[SELECTED_HOST]); }
         return;
     }
 
-    HOST = host;
+    SELECTED_HOST = host;
     drawToContainer('', 'main');
-    drawToContainer(HOST, 'hostname');
-    if (STATS) { updateGraphs(STATS[HOST]); }
+    drawToContainer(SELECTED_HOST, 'hostname');
+    if (STATS) { updateGraphs(STATS[SELECTED_HOST]); }
     //fetch_and_update(HOST);
 }
 
@@ -43,17 +62,19 @@ function drawToContainer(data, container) {
     target.innerHTML = data;
 }
 
-function addOrUpdateDiv(targetId, divId, content, _class, _style) {
+function addOrUpdateElement(containerId, elementId, completeContent, updateContent) {
     // the 'main' div to hold divId's content
-    var targetDiv = document.getElementById(targetId);
-    var currentDiv = document.getElementById(divId);
-    if (currentDiv) {
-        if (content != currentDiv.innerHTML) {
-            currentDiv.innerHTML = content;
+    var targetDiv = document.getElementById(containerId);
+    var oldElement = document.getElementById(elementId);
+    if (oldElement) {
+        //UPDATE
+        if (updateContent != oldElement.innerHTML) {
+            oldElement.innerHTML = updateContent;
         }
     }
     else {
-        targetDiv.innerHTML += '<div id=' + divId + ' class="' + _class + '" style="' + _style +'" >' + content + '</div>'
+        // the element is added, since it does not exist
+        targetDiv.innerHTML += completeContent;
     }
 }
 
@@ -73,7 +94,7 @@ graphOpts = {
         showGrid: false,
         
         labelInterpolationFnc: function skipLabels(value, index) {
-            return index % 10/5  === 0 ? value : null;
+            return index % 5  === 0 ? value : null;
         }
     },
     axisY: {
@@ -83,26 +104,27 @@ graphOpts = {
 
 
 function updateGraphs(data) {
-    var hoststring = '';
+    if (!SELECTED_HOST) { return; }
+
+    // HOSTS
     for (var host in STATS) {
-        lasthost = host;
-        hoststring += '<a href="" class=\"mdl-navigation__link\" onclick=\'setCurrentHost(\"' + host + '\"); return false;\'>' + host +'</a>'
+        id = 'id_h_' + host;
+        addOrUpdateElement('hostlist', id, '<a href="" id="' + id + '" class="mdl-navigation__link" onclick=\'setCurrentHost(\"' + host + '\"); return false;\'>' + host + '</a>', host);
     }
-    drawToContainer(hoststring, 'hostlist');
-        if (! HOST) {return;}
-   
     
+    
+       
     for (var value in data) {
         if (value) {
             var id = value.hashCode();
             graphable = data[value][2];
             if (graphable) {
                 currentDiv = '<b>' + value + '</b> ' + data[value][0][0];
-                addOrUpdateDiv('main', id, currentDiv, "ct-chart ct-perfect-fourth dataitem", "height: 100px; width:100%");
+                addOrUpdateElement('main', id, '<div id="' + id + '" class="ct-chart ct-perfect-fourth dataitem" style="height: 100px; width:100%">'+currentDiv+'</div>', currentDiv);
 
             } else {
                 currentDiv = '<b>' + value + '</b>: ' + data[value][0][0];
-                addOrUpdateDiv('main', id, currentDiv, "dataitem", "");
+                addOrUpdateElement('main', id, '<div id="' + id + '" class="dataitem" >' + currentDiv + '</div>', currentDiv);
             }
         }
     }
@@ -149,32 +171,23 @@ function get_all_stats() {
 }
 
 
-function redraw_data() {
-    if (! HOST) { return }
-    if (STATS) {
-        updateGraphs(STATS[HOST]);
-    }
-}
-
-
 function fetch_data() {
-    if (! HOST) { return }
+    if (!SELECTED_HOST) { return; }
     var xhr = new XMLHttpRequest();
     //xhr.open('GET', '/dump');
-    xhr.open('GET', '/dump?host=' + HOST);
+    xhr.open('GET', '/dump?host=' + SELECTED_HOST);
     xhr.onload = function() {
         var data = JSON.parse(xhr.responseText);
         //STATS = data;
-        STATS[HOST] = data;
+        STATS[SELECTED_HOST] = data;
     };
     xhr.send();
 }
 
 function changeInterval(interval) {
-  
-    var ms = Number(interval) * 400 
+    var ms = Number(interval) * 400;
     clearInterval(DATAUPDATEID);
-    DATAUPDATEID = setInterval(function(){ fetch_data() }, ms);
+    DATAUPDATEID = setInterval(function(){ fetch_data()}, ms);
     console.log(ms);
 }
 
@@ -186,38 +199,26 @@ function main() {
         data = JSON.parse(xhr.responseText);
         STATS = data;
         var hosts = Object.keys(STATS);
-        if (hosts.length > 0) {HOST=hosts[0];}
-        console.log(HOST);
+        if (hosts.length > 0) {SELECTED_HOST=hosts[0];}
+        console.log(SELECTED_HOST);
         //setCurrentHost(HOST);
         drawToContainer('', 'main');
-        drawToContainer(HOST, 'hostname');
+        drawToContainer('', 'hostlist');
+        drawToContainer(SELECTED_HOST, 'hostname');
  
-        if (STATS) { updateGraphs(STATS[HOST]); }
+        if (STATS) { updateGraphs(STATS[SELECTED_HOST]); }
         //updateGraphs(STATS[HOST]);
-        var intervalID = setInterval(function(){ redraw_data() }, 800);
-        var intervalID = setInterval(function () { get_all_stats() }, 10000);
-        DATAUPDATEID = setInterval(function(){ fetch_data() }, 10000);
+        setInterval(function(){ updateGraphs(STATS[SELECTED_HOST])}, 200);
+        setInterval(function () { get_all_stats()}, 10000);
+        DATAUPDATEID = setInterval(function(){ fetch_data()}, 10000);
 
     };
     xhr.send();
 
 }
 
-/*
-var slider = document.getElementById('slider');
-slider.onchange = function(){
-   console.log(slider.value);
-   changeInterval(slider.value);
-}
-*/
+
 main();
-//get_hosts();
-
-//var intervalID = setInterval(function(){ redraw_data() }, 200);
-// hosts need a lower update interval
-//var intervalID = setInterval(function () { get_hosts() }, 10000);
-
-//var intervalID = setInterval(function(){ fetch_data() }, 1500);
 
 
 
