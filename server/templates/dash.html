@@ -37,8 +37,8 @@ $def with (nodes, stats)
             <div class='options'>
             Refresh delay
             <!-- <input id="slider" type="range" min="1" max="20" value="10" /> -->
-            <input id="slider-interval" class="mdl-slider mdl-js-slider" type="range" min="1" max="20" value="10" tabindex="0" oninput="changeInterval(this.value);interval.text=this.value">
-            <div id="interval"></div>
+            <input id="slider-interval" class="mdl-slider mdl-js-slider" type="range" min="1" max="20" value="10" tabindex="0" oninput="changeInterval(this.value);document.getElementById('interval').innerHTML = Math.round(this.value*0.3*10)/10 + 's';">
+            <div id="interval">3s</div>
             </div>
 
     </div>
