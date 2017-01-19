@@ -5,6 +5,7 @@ import socket
 import time
 import json
 import subprocess
+from subprocess import Popen, PIPE
 import sys
 import multiprocessing
 import argparse
@@ -38,6 +39,7 @@ class Client():
         self.server = server
         self.post_url = server + '/add'
         self.ssh_port_url = server + '/request_port'
+        self.platform = platform.platform()
         
 
     def ask_for_port(self):
@@ -56,7 +58,10 @@ class Client():
         """
         cmd = ['ssh', '-f', '-N', '-T', '-R'+ str(remote_port) + ':127.0.0.1:' + str(local_port), server_address]
         #ssh -f -N -T -R22222:localhost:22 user@host
-        return_value = subprocess.call(cmd)
+        try:
+            return_value = subprocess.call(cmd)
+        except:
+            return_value = 1
         if return_value == 0:
             self.tunnel_up = True
             return True
@@ -88,28 +93,66 @@ class Client():
             uptime = False
         return uptime
 
-    @staticmethod
-    def get_free_space():
+    def get_free_space(self):
         directory = os.curdir
-        statvfs = os.statvfs(os.curdir)
-        free_mb = statvfs.f_frsize * statvfs.f_bfree/1024/1024
-        return free_mb
 
-    @staticmethod
-    def get_meminfo():
+        if 'windows' in self.platform.lower():
+            proc = Popen('fsutil volume diskfree c:', stdout=PIPE, stderr=PIPE)
+            output = proc.communicate()
+            if output:
+                output = output[0].replace(' ','').splitlines()
+                try:
+                    free = output[0].split(':')[1]
+                    free = int(free)/1024/1024
+                    return free
+                except:
+                    return 'Could not get free disk space'
+        else:
+            statvfs = os.statvfs(os.curdir)
+            free_mb = statvfs.f_frsize * statvfs.f_bfree/1024/1024
+            return free_mb
+
+    def get_meminfo(self):
         """
         Retrieve info about memory usage.
         returns: three ints: total, used, free
         """
         mem = False
-        try:
-            mem = ' '.join(subprocess.check_output(['free', '-m']).splitlines()[1].split()).split()
-            mem_total = int(mem[1])
-            mem_used = int(mem[2])
-            mem_free = mem_total - mem_used
-            return mem_total, mem_used, mem_free
-        except OSError:
-            return 'free -m returned an error'
+
+        if 'windows' in self.platform.lower():
+            
+            def query_wmic(query):
+                proc = Popen(query, stdout=PIPE, stderr=PIPE)
+                output = proc.communicate()
+                if output:
+                    output = output[0].replace(' ','').splitlines()
+                    for o in output:
+                        try:
+                            return int(o)/1024
+                        except ValueError:
+                            pass
+                return 'Not found'
+            
+            total = query_wmic('wmic ComputerSystem get TotalPhysicalMemory')
+            if isinstance(total, int):
+                total = total/1024
+            
+            free = query_wmic('wmic OS get FreePhysicalMemory')
+            if isinstance(total, int) and isinstance(free, int):
+                used = total - free
+            else:
+                used = 'Not found'
+            return total, used, free
+            
+        else:
+            try:
+                mem = ' '.join(subprocess.check_output(['free', '-m']).splitlines()[1].split()).split()
+                mem_total = int(mem[1])
+                mem_used = int(mem[2])
+                mem_free = mem_total - mem_used
+                return mem_total, mem_used, mem_free
+            except OSError:
+                return 'free -m returned an error', 0 ,0
 
     @staticmethod
     def get_os():
@@ -120,25 +163,39 @@ class Client():
         #return sys.platform
         return platform.platform()
 
-    @staticmethod
-    def get_cpuinfo():
+    def get_cpuinfo(self):
         """
         Retrieve CPU usage.
         returns: float
         """
-        num_cpu = multiprocessing.cpu_count()
-        try:
-            load = subprocess.check_output('uptime').rstrip()
-            load = load.split('age: ')[1].split('  ')[0].split(',')[1]
-        except:
-            load = False
-        if load:
+
+        if 'windows' in self.platform.lower():
+            proc = Popen('wmic cpu get loadpercentage', stdout=PIPE, stderr=PIPE)
+            output = proc.communicate()
+            if output:
+                loadstring = output[0].replace(' ','').splitlines()
+                for entry in loadstring:
+                    try:
+                        return int(entry)
+                        print 'CPU LOAD', entry
+                    except ValueError:
+                        pass
+            return 'Could not determine cpu usage'
+
+        else:
+            num_cpu = multiprocessing.cpu_count()
             try:
-                load = float(load)
-                load = load/num_cpu*100
-            except ValueError:
-                print 'could not convert cpu to float value. Check uptime format.'
-        return load
+                load = subprocess.check_output('uptime').rstrip()
+                load = load.split('age: ')[1].split('  ')[0].split(',')[1]
+            except:
+                load = False
+            if load:
+                try:
+                    load = float(load)
+                    load = load/num_cpu*100
+                except ValueError:
+                    print 'could not convert cpu to float value. Check uptime format.'
+            return load
 
     def updateloop(self, interval):
         """
@@ -153,6 +210,7 @@ class Client():
                 'uptime': self.get_uptime(),
                 'total memory': str(self.get_meminfo()[0]) + ' MB installed',
                 'free memory (MB)': self.get_meminfo()[2],
+                'used memory (MB)': self.get_meminfo()[1],
 
                 'os': self.get_os(),
                 'cpu %': self.get_cpuinfo(),
