@@ -91,7 +91,8 @@ class Value(object):
             self.add(val)
 
     def refresh(self):
-        self.deltatimes = [human_timediff(t) for t in self.timestamps]
+        return
+        #self.deltatimes = [human_timediff(t) for t in self.timestamps]
         #print self.deltatimes
         #self.deltatimes = self.timestamps
 
@@ -182,21 +183,19 @@ class DataBase():
                 if host != solo:
                     continue
 
-            # The timing logic
-            now = time.time()
-            #print 'latest:', hostinfo['timestamp'].latest
-            latest_stamp = float(hostinfo['timestamp'].latest)
-            timediff = now - latest_stamp
-#            timediff = now - float(hostinfo['timestamp'].latest)
+            # # The timing logic
+            # now = time.time()
+            # latest_stamp = float(hostinfo['timestamp'].latest)
+            # timediff = now - latest_stamp
+
+            # if timediff > hostinfo['update_rate'].latest:
+            #     hostinfo['inactive'] = Value(True)
+            # else:
+            #     hostinfo['inactive'] = Value(False)
+
+            # hostinfo['last seen'] = Value(human_timediff(latest_stamp))
 
 
-            if timediff > hostinfo['update_rate'].latest:
-                hostinfo['inactive'] = Value(True)
-            else:
-                hostinfo['inactive'] = Value(False)
-
-            hostinfo['last seen'] = Value(human_timediff(latest_stamp))
-            #hostinfo['last seen'] = Value(timediffstring)
 
             for val in hostinfo.itervalues():
                 #pass
@@ -219,25 +218,27 @@ class DataBase():
         now = time.time()
 
         # Now add some mandatory stuff.
-        value_dict['timestamp'] = now
+        # value_dict['timestamp'] = now
 
         host = value_dict['host']
         # as host will act as a key, we do not need to keep him around.
         del value_dict['host']
 
-        value_dict['id'] = 'id' + str(hashlib.md5(host).hexdigest())
+        #value_dict['id'] = 'id' + str(hashlib.md5(host).hexdigest())
 
-        if 'update_rate' not in value_dict:
-            # set default update rat if not given
-            value_dict['update_rate'] = DEFAULT_UPDATE_RATE
-        else:
-            value_dict['update_rate'] = autoconvert(value_dict['update_rate'])
-            if not isinstance(value_dict['update_rate'], int):
-                value_dict['update_rate'] = DEFAULT_UPDATE_RATE
+        # if 'update_rate' not in value_dict:
+        #     pass
+        #     # set default update rat if not given
+        #     # value_dict['update_rate'] = DEFAULT_UPDATE_RATE
+        # else:
+        #     value_dict['update_rate'] = autoconvert(value_dict['update_rate'])
+        #     if not isinstance(value_dict['update_rate'], int):
+        #         value_dict['update_rate'] = DEFAULT_UPDATE_RATE
 
         # enable users to pass their icon. Set a default one if unset.
         if 'icon' not in value_dict:
-            value_dict['icon'] = DEFAULT_ICON
+            pass
+            #value_dict['icon'] = DEFAULT_ICON
 
         if host not in self.data:
             self.data[host] = {}

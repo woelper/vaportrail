@@ -1,5 +1,15 @@
 $def with (nodes, stats)
+$code:
+    def gen_id(string):
+        prefix = 'id_'
+        return prefix + string.replace('.', '_')
 
+    def get_icon(attributes):
+        default = 'fa-server'
+        if 'icon' in attributes.keys():
+            return attributes['icon'].latest
+        else:
+            return default
 
 <HTML>
     <HEAD>
@@ -8,7 +18,7 @@ $def with (nodes, stats)
         <script src="static/js/chartist.min.js"></script>
         <LINK rel="stylesheet" href="static/bs/css/bootstrap.min.css" crossorigin="anonymous">
         <LINK rel="stylesheet" href="static/bs/fa/css/font-awesome.min.css">
-        <LINK rel="stylesheet" href="static/custom.css"> 
+        <LINK rel="stylesheet" href="static/css/custom.css"> 
         <LINK rel="icon" type="image/png" href="static/img/icon_128.png" sizes="128x128">
 </HEAD>
 
@@ -28,26 +38,27 @@ $def with (nodes, stats)
                 $else:
                     <DIV class="col-md-12 evenrow">
 
-                <DIV class="wrapper"  onclick="toggle('$server_dict['id'].latest');">
+                <DIV class="wrapper"  onclick="toggle('$gen_id(host)');">
                 
                     <div class="pmc_row_header">
-                        <i class="fa $server_dict['icon'].latest" aria-hidden="true"></i>
+                        <i class="fa $get_icon(server_dict)" aria-hidden="true"></i>
                     </div>
                     <div class="pmc_row">
                         $host
                     </div>
-                    <div class="pmc_row_header">
-                        $if server_dict['inactive'].latest:
+                    <!--fix this -->
+                    <!--<div class="pmc_row_header">
+                        $#if server_dict['inactive'].latest:
                             <i class="fa fa-ban" aria-hidden="true"></i>
-                        $else:
+                        $#else:
                             <i class="fa fa-check" aria-hidden="true"></i>
-                    </div>
+                    </div>-->
 
                     <div class="pmc_row_header">
                         <i class="fa fa-info-circle pushable" aria-hidden="true"></i>
                     </div>
                 </DIV> <!-- wrapper -->
-                <DIV id="$server_dict['id'].latest" class="collapse col-md-12">
+                <DIV id="$gen_id(host)" class="collapse col-md-12">
                     <!--<div class="ct-chart ct-perfect-fourth" style="width: 400px;height100px;"></div>
                     <script>var data = {labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],series: [[5, 2, 4, 2, 0]]};new Chartist.Line('.ct-chart', data);</script>-->
 
@@ -57,7 +68,7 @@ $def with (nodes, stats)
                         $#:graph_hist(value)
                         $if value.graphable:
                             $value.latest
-                            <div class="ct-chart ct-perfect-fourth" data-x-axis="" data-y-axis="" id="$server_dict['id'].latest$num" style="height: 100px; width:100%"></div>
+                            <div class="ct-chart ct-perfect-fourth" data-x-axis="" data-y-axis="" id="$gen_id(host)$num" style="height: 100px; width:100%"></div>
                             <script>
 
 
@@ -83,7 +94,7 @@ $def with (nodes, stats)
                                 ['screen and (max-width: 640px)', {width: 400, height: 100}]
                             ];
 
-                            new Chartist.Line('#$server_dict['id'].latest$num', {
+                            new Chartist.Line('#$gen_id(host)$num', {
                                 series: [$value.values],
                                 labels: $:value.deltatimes
                                 

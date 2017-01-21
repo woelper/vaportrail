@@ -1,6 +1,7 @@
 var SELECTED_HOST = null;
 var STATS = {};
 var DATAUPDATEID = 0;
+var DEFAULT_TIMEOUT = 500;
 
 String.prototype.hashCode = function() {
   var hash = 0, i, chr, len;
@@ -13,26 +14,100 @@ String.prototype.hashCode = function() {
   return 'id' + hash;
 };
 
+function isElement(obj) {
+    try {
+            //Using W3 DOM2 (works for FF, Opera and Chrom)
+            return obj instanceof HTMLElement;
+        }
+        catch(e){
+            //Browsers not supporting W3 DOM2 don't have HTMLElement and
+            //an exception is thrown and we end up here. Testing some
+            //properties that all elements have. (works on IE7)
+            return (typeof obj==="object") &&
+                     (obj.nodeType===1) && (typeof obj.style === "object") &&
+                     (typeof obj.ownerDocument ==="object");
+                 }
+}
 
-function niceUnixTime(timestamp) {
-    var date = new Date(Number(timestamp)*1000);
-    var hours = date.getHours();
-    var minutes = "0" + date.getMinutes();
-    var seconds = "0" + date.getSeconds();
 
-    var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+Date.prototype.getUnixTime = function() { return this.getTime()/1000|0 };
+if(!Date.now) Date.now = function() { return new Date(); }
+Date.time = function() { return Date.now().getUnixTime(); }
+
+function unixTimeToDate(timestamp) {
+    return new Date(timestamp * 1000);
+}
+
+function niceTime(date) {
+    // var date = new Date(Number(timestamp)*1000);
+    now = new Date();
+
+    var month = date.getMonth() + 1;
+    var day = date.getDate();
+    var hour = date.getHours();
+    var minute = "0" + date.getMinutes();
+    var second = "0" + date.getSeconds();
+    
+    if (now.getDate() == day) {
+        var formattedTime = hour + ':' + minute.substr(-2);    
+
+    } else {
+        var formattedTime = month + '/' + day + '/' + hour + ':' + minute.substr(-2);    
+
+    }
+    
     return formattedTime;
 }
 
-function niceUnixTimeDelta(timestamp) {
-    var date = new Date(timestamp*1000);
-    var hours = date.getHours();
-    var minutes = "0" + date.getMinutes();
-    var seconds = "0" + date.getSeconds();
-
-    var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-    return formattedTime;
+function niceTimeDelta(date) {
+    var now = new Date();
+    var then = date;
+    var delta = (now - then);  
+    var d = new Date(delta);
+    var sDelta = delta / 1000; //in s
+    return niceSecondDelta(sDelta);
 }
+
+function niceSecondDelta(seconds) {
+
+    var hrt = {};    
+    hrt.days = Math.floor(seconds / 3600 / 24);
+    hrt.hours = Math.floor(seconds / 3600 - 3600 * 24 * hrt.days);
+    hrt.minutes = Math.floor(seconds/60 - 60 * hrt.hours);
+    hrt.seconds = Math.floor(seconds - hrt.minutes * 60 - hrt.hours * 3600);
+
+    if (hrt.minutes == 0) {
+        hrt.minutes = '';
+    } else {
+        hrt.minutes += 'm';
+    }
+
+    if (hrt.hours == 0) {
+        hrt.hours = '';
+    } else {
+        hrt.hours += 'h';
+    }
+    
+    if (hrt.days == 0) {
+        hrt.days = '';
+    } else {
+        hrt.days += 'h';
+    }
+
+
+    return hrt.hours + hrt.minutes  + hrt.seconds + 's';
+}
+
+function getInterval(array_of_unix_timestamps) {
+    // probably no need to iterate the full data to get the interval.
+    if (array_of_unix_timestamps.length >= 2) {
+        return (array_of_unix_timestamps[0] - array_of_unix_timestamps[1]);
+    } else {
+        return DEFAULT_TIMEOUT;
+    }
+        
+}
+
 
 function displayOptions(_id) {
 
@@ -45,15 +120,17 @@ function displayOptions(_id) {
 }
 
 function setCurrentHost(host) {
+    if (!STATS) { return;}
+
     if (host == SELECTED_HOST) {
-        if (STATS) { updateGraphs(STATS[SELECTED_HOST]); }
+        updateGraphs(STATS[SELECTED_HOST]);
         return;
     }
 
     SELECTED_HOST = host;
     drawToContainer('', 'main');
     drawToContainer(SELECTED_HOST, 'hostname');
-    if (STATS) { updateGraphs(STATS[SELECTED_HOST]); }
+    updateGraphs(STATS[SELECTED_HOST]);
     //fetch_and_update(HOST);
 }
 
@@ -87,14 +164,17 @@ function addOrUpdateGraph (container, div) {
 }
 
 graphOpts = {
-    showPoint: false,
+    // showPoint: true,
     lineSmooth: false,
     showArea: true,
+    plugins: [
+        Chartist.plugins.tooltip()
+    ],
     axisX: {
         showGrid: false,
         
         labelInterpolationFnc: function skipLabels(value, index) {
-            return index % 5  === 0 ? value : null;
+            return index % 10  === 0 ? value : null;
         }
     },
     axisY: {
@@ -106,58 +186,152 @@ graphOpts = {
 function updateGraphs(data) {
     if (!SELECTED_HOST) { return; }
 
+    var shortest_update = DEFAULT_TIMEOUT;
+
+    var now = new Date();
     // HOSTS
     for (var host in STATS) {
-        id = 'id_h_' + host;
+        var id = 'id_h_' + host;
         addOrUpdateElement('hostlist', id, '<a href="" id="' + id + '" class="mdl-navigation__link" onclick=\'setCurrentHost(\"' + host + '\"); return false;\'>' + host + '</a>', host);
     }
     
-    
-       
+    // insert all into DOM once
     for (var value in data) {
         if (value) {
             var id = value.hashCode();
             graphable = data[value][2];
             if (graphable) {
-                currentDiv = '<b>' + value + '</b> ' + data[value][0][0];
-                addOrUpdateElement('main', id, '<div id="' + id + '" class="ct-chart ct-perfect-fourth dataitem" style="height: 100px; width:100%">'+currentDiv+'</div>', currentDiv);
-
-            } else {
-                currentDiv = '<b>' + value + '</b>: ' + data[value][0][0];
-                addOrUpdateElement('main', id, '<div id="' + id + '" class="dataitem" >' + currentDiv + '</div>', currentDiv);
+                //addOrUpdateElement('main', id, '<canvas id="' + id + '" width=100 height=100  ></canvas>', '');
+                addOrUpdateElement('main', id, '<div id="' + id + '" class="ct-chart ct-perfect-fourth dataitem ' + activity + '" style="height: 100px; width:100%">' + currentDiv + '</div>', currentDiv);
+            }else{
+                addOrUpdateElement('main', id, '<div id="' + id + '"  ></div>', '');
             }
         }
     }
 
-    // GRAPHS    
+    // update the values
     for (var value in data) {
-        
-       //if (! graphable) {continue;} 
-       var nicetime = [];
-        
-        for (entry in data[value][1]) {
-            nicetime.push( niceUnixTime(data[value][1][entry]) );
-        }
+        if (value) {
 
-        var id = value.hashCode();
-        if (data[value][2]) {
-            var dta = { labels: nicetime, series: [data[value][0]] };
-            var chart = document.querySelector('#' + id);
-            if (chart) {
-                // UPDATE THE CHART
-                if (chart.__chartist__) {
-                    chart.__chartist__.update(dta)
-                    //console.log('upd chart');
-                } else {
-                    // WE NEED TO CREATE THE CHART
-                    //console.log('init chart');
-                    new Chartist.Line('#' + id, dta, graphOpts);
+            // TIME            
+            latestTimestamp = Math.round(data[value][1][0]);
+            var interval = ' ' + getInterval(data[value][1]);
+            var last_seen = now.getUnixTime() - latestTimestamp;
+
+            //ID
+            var id = value.hashCode();
+
+            var activity = 'active';
+            if ((interval*1.5 - (last_seen - 5) < 0)) {activity = 'inactive';}
+            
+            graphable = data[value][2];
+
+            // THIS DATA IS GRAPHABLE            
+            if (graphable) {
+
+                var humantime = [];
+                var values = [];
+                
+                // generate some human-readable time descriptions                
+                for (var entry in data[value][1]) {
+                    time = unixTimeToDate(data[value][1][entry]);
+                    humantime.push(niceTimeDelta(time));
                 }
+
+                for (var d in data[value][0]) {
+                    values.push({ meta: 'description', value: data[value][0][d] });
+                }
+
+                currentDiv = '<b>' + value + '</b> ' + data[value][0][0] + ' ' + activity;
+                addOrUpdateElement('main', id, '<div id="' + id + '" class="ct-chart ct-perfect-fourth dataitem ' + activity + '" style="height: 100px; width:100%">' + currentDiv + '</div>', currentDiv);
+                //addOrUpdateElement('main', id, '<canvas id="' + id + '" class="dataitem ' + activity + '" width="400" height="100">' + currentDiv + '</div>', currentDiv);
+
+                var ctx = document.getElementById(id);
+                 
+                
+
+
+                 //CHARTIST CHART ////////////////////////////////////////
+                 var chart = document.getElementById(id);
+                 var dta = { labels: humantime, series: [values] };
+                
+                 if (chart) {
+                     if (chart.__chartist__) {
+                         chart.__chartist__.update(dta);
+                     } else {
+                         // WE NEED TO CREATE THE CHART
+                         // console.log('init chart');
+                         c = new Chartist.Line('#' + id, dta, graphOpts);
+                         var testchart = document.querySelector('#' + id);
+                         // console.log(testchart.__chartist__)
+                     }
+                 }
+                 //END CHART /////////////////////////////////////////////
+
+            // NON-GRAPHABLE DATA
+            } else {
+                // console.log('non-graph update');
+                currentDiv = '<b>' + value + '</b>: ' + data[value][0][0] + ' ' + activity;
+                addOrUpdateElement('main', id, '<div id="' + id + '" class="dataitem ' + activity + '" >' + currentDiv + '</div>', currentDiv);
             }
-        }
+        } 
     }
-    // END GRAPHS
+    
 }
+
+
+//     return
+//     // GRAPH DATA
+//     for (var value in data) {
+        
+//        //if (! graphable) {continue;} 
+//        var nicetime = [];
+        
+//        for (entry in data[value][1]) {
+//             time = unixTimeToDate(data[value][1][entry]);
+//             nicetime.push(niceTimeDelta(time));
+//         }
+
+//         var rtGraph = false;
+
+
+
+        
+//         var id = value.hashCode();
+//         if (data[value][2]) {
+//             var chart = document.querySelector('#' + id);
+//             if (rtGraph && chart.__chartist__) {
+//                 var maxsize = 60;
+//                 cur_labels = chart.__chartist__.data['labels'];
+//                 cur_series = chart.__chartist__.data['series'][0];
+
+//                 cur_labels.unshift(nicetime[0]);
+//                 cur_series.unshift(data[value][0][0]);                
+                
+//                 if (cur_labels.length > maxsize) {
+//                     cur_labels.pop();
+//                     cur_series.pop();
+//                 }
+
+//                 var dta = { labels: cur_labels, series: [cur_series] };
+//             } else {
+//                 var dta = { labels: nicetime, series: [data[value][0]] };
+//             }
+//             if (chart) {
+//                 // UPDATE THE CHART
+//                 if (chart.__chartist__) {
+//                     chart.__chartist__.update(dta)
+//                     //console.log('upd chart');
+//                 } else {
+//                     // WE NEED TO CREATE THE CHART
+//                     //console.log('init chart');
+//                     new Chartist.Line('#' + id, dta, graphOpts);
+//                 }
+//             }
+//         }
+//     }
+//     // END GRAPHS
+// }
 
 
 function get_all_stats() {
@@ -185,10 +359,10 @@ function fetch_data() {
 }
 
 function changeInterval(interval) {
-    var ms = Number(interval) * 400;
+    var ms = Number(interval) * 300;
     clearInterval(DATAUPDATEID);
     DATAUPDATEID = setInterval(function(){ fetch_data()}, ms);
-    console.log(ms);
+    document.getElementById('interval').innerHTML = Math.round(ms/1000*10)/10 + 's';
 }
 
 
@@ -200,17 +374,17 @@ function main() {
         STATS = data;
         var hosts = Object.keys(STATS);
         if (hosts.length > 0) {SELECTED_HOST=hosts[0];}
-        console.log(SELECTED_HOST);
+        //console.log(SELECTED_HOST);
         //setCurrentHost(HOST);
         drawToContainer('', 'main');
         drawToContainer('', 'hostlist');
         drawToContainer(SELECTED_HOST, 'hostname');
  
         if (STATS) { updateGraphs(STATS[SELECTED_HOST]); }
-        //updateGraphs(STATS[HOST]);
-        setInterval(function(){ updateGraphs(STATS[SELECTED_HOST])}, 200);
+        
+        setInterval(function(){ updateGraphs(STATS[SELECTED_HOST])}, 13050);
         setInterval(function () { get_all_stats()}, 10000);
-        DATAUPDATEID = setInterval(function(){ fetch_data()}, 10000);
+        DATAUPDATEID = setInterval(function(){ fetch_data()}, 3000);
 
     };
     xhr.send();

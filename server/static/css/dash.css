@@ -1,34 +1,42 @@
 .stats {
     margin-top: 50px;
 }
+
 /* CHART STUFF */
 .ct-series-a .ct-line {
   /*stroke: rebeccapurple;*/
   stroke: rgb(103,58,183);
-  stroke-width: 2px;
+  stroke-width: 1px;
 }
-.ct-chart{
-  /*background: #efefef;*/
-  position: relative;
-}
+
 .ct-series-a .ct-area{
-  
   /*fill: #707070;*/
   fill: rgba(103,58,183,0.7);
   
 }
 
+.ct-point{
+    stroke: rgb(103,58,183) !important;
+    stroke-width: 4px;
+}
+
+/*
 .ct-chart-line {
   margin-top: 20px;
   margin-left: 5px;
+}*/
+
+
+.dataitem{
+  margin-top: 10px;
+  background: rgba(0, 0, 0, 0.06);
 }
 
-.dataitem {
-  margin-top: 10px;
-  padding: 5px;
+
+.dataitem b{
+  /*padding: 5px;*/
   padding-left: 15px;
-  
-  background: rgba(0, 0, 0, 0.06);
+  /*background: rgba(0, 0, 0, 0.06);*/
 }
 
 #options {
@@ -54,4 +62,14 @@
 
 .mdl-layout__header-row{
   /*transition:width 300ms ease-in-out, height 300ms ease-in-out;*/
+}
+
+.inactive {
+  background: red;
+}
+
+.active {
+  /*background: red;*/
+  background: rgba(0, 0, 0, 0.06);
+  
 }
