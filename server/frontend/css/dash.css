@@ -1,0 +1,78 @@
+
+.isLoaded {
+  /*display: none;*/
+  background: rgba(255, 0, 0, 1);
+
+}
+
+.dataset{
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.offlinebadge {
+  margin-left: auto;
+  background-color: rgb(233, 30, 99);
+  border-radius: 10px;
+  padding: 6px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  color: white;
+
+}
+
+.material-icons, .icon-text {
+      vertical-align: middle;
+    }
+
+.sourcename {
+  display: flex;
+  align-items: center;
+}
+
+
+.offline {
+  background: rgba(0, 0, 0, 0.1);
+  
+}
+
+#options {
+  /*width: 100px;*/
+  /*margin: 10px;*/
+  padding: 5px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.optionitem {
+  display: inline-block;
+}
+
+.optiongroup {
+  margin-left: 26px;
+}
+
+
+.inactive {
+  background: red;
+}
+
+.active {
+  /*background: red;*/
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.history {
+  display: none;
+  /*background: red;*/
+  /*background: rgba(0, 0, 0, 0.06);*/
+  font-size: 0.7em;
+  line-height: 1em;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+
+.menu-selected {
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.08);
+}

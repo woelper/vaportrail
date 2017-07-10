@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<HTML>
+    <HEAD>
+        <META name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <LINK rel="icon" type="image/png" href="img/icon_128.png" sizes="128x128">
+    </HEAD>
+
+<BODY style="margin:0px;">
+    <div id="vue" class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header" >
+        
+        <!--loading box before everything is ready-->
+        <div v-if="!ready" style=
+            "
+            background:rebeccapurple;
+            padding: 50px;
+            font-family:Arial, Helvetica, sans-serif;
+            color: white;
+            font-weight: bold;
+            font-size: 2em;
+            ">
+            Loading
+        </div>
+        
+        <template v-if="ready">
+        <!--The Navbar-->
+        <header class="mdl-layout__header">
+            <div class="mdl-layout__header-row">
+                <span class="mdl-layout-title" id="hostname">
+                {{ currentHostName }}
+                
+                <template v-if="currentHostName == ''">
+                No host active.
+                </template>
+
+                </span>
+                <div class="mdl-layout-spacer"></div>
+                <!--<a href="" id="" class="mdl-navigation__link" onclick='setCurrentHost(); return false;'>' + host + '</a>', host);-->
+                <nav class="mdl-navigation">
+
+                    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="show_options">
+                        <input type="checkbox" id="show_options" class="mdl-switch__input" v-model="options_visible">
+                        <span class="mdl-switch__label"></span>
+                    </label>
+
+                    <a class="mdl-navigation__link" href="" onclick="displayOptions('options'); return false;">options</a>
+                </nav>
+            </div>
+
+            <template v-if="options_visible">
+            <div id='options'>
+                <div class="optiongroup">
+                    <div class="optionitem">Refresh delay</div>
+                    <div class="optionitem" id="interval">3s</div>
+                </div>
+                <p style="width:200px">
+                    <input id="slider-interval" class="mdl-slider mdl-js-slider" type="range" min="1" max="20" value="10" tabindex="0" >
+                </p>
+                <div class="optiongroup">
+                    <input v-model="server" placeholder="Stat server">
+                    <p>Connected: {{ !disconnected }}</p>
+                </div>
+            </div>
+            </template>
+        </header>
+
+        <!--The sidebar-->
+        <div class="mdl-layout__drawer">
+            <span class="mdl-layout-title">Hosts</span>
+            <nav id="hostlist" class="mdl-navigation">
+                <template v-for="value, key in completeDB">
+                    <a class="mdl-navigation__link" v-bind:class="{ 'menu-selected': currentHostName == key }"href="#" @click="currentHostName=key; currentHost=completeDB[key];">
+                        {{key}}
+                    </a>
+                </template>
+            </nav>
+        </div>
+
+
+        <!--The page content-->
+        <main class="mdl-layout__content">
+
+            <template v-if="server == ''">
+                <span class="mdl-chip" style="margin: 50px;">
+                    <span class="mdl-chip__text">Server not set. Please see options to configure a server.</span>
+                </span>
+            </template>
+
+            <template v-if="disconnected">
+                <span class="mdl-chip" style="margin: 50px;">
+                    <span class="mdl-chip__text">Disconnected...</span>
+                </span>
+            </template>
+
+                <div class="stats" id="main">
+
+                    <template v-for="value, key in currentHost">
+                        <div class="dataset">
+
+                            <div class="sourcename">
+                                <div><b>{{ key }}</b></div>
+                                <template v-if="isOffline(value.timestamps)">
+                                    <div class="offlinebadge">
+                                        <i class="material-icons">cloud_off</i>
+                                        offline
+                                    </div>
+                                </template>
+                            </div>
+
+                            <template v-if="value.uniform">
+                                <line-chart
+                                height="150px"
+                                :data="chartData(beautyfulTime(value.timestamps), value.values)"
+                                :curve="false"
+                                :min="null"
+                                :library="{
+                                    chart: {backgroundColor: 'rgba(0,0,0,0.0)'},
+                                    plotOptions: {
+
+                                        series: {
+                                            animation: false,
+                                            marker: {enabled: false},
+                                            dataGrouping: {enabled: false},
+                                            }
+                                        },
+                                    colors: ['rebeccapurple']
+                                    }"
+                                ></line-chart>
+                            </template>
+                            <template v-else>
+                                {{value.values[0]}}
+                                <br>
+                                <div class="history">
+                                    <template v-for="val in value.values">
+                                        <br>{{val}}
+                                    </template>
+                                </div>
+                                
+                            </template>
+
+                        </div> <!-- dataset-->
+                    </template>
+
+                </div> <!--main-->
+        
+
+
+
+        </main>
+
+        </template>
+    </div> <!--vue-->
+    
+</BODY>
+
+
+<script src="js/vue.min.js"></script>
+<script defer src="js/highcharts.js"></script>
+<script defer src="js/chartkick.min.js"></script>
+<script defer src="js/vue-chartkick.js"></script>
+<script defer src="js/material.min.js"></script>
+<script defer src="js/dash.js"></script>
+<link rel="stylesheet" href="css/material.deep_purple-orange.min.css" />
+<link rel="stylesheet" href="css/dash.css">
+<link rel="stylesheet" href="css/mdl_icons.css">
+
+    
+</HTML>

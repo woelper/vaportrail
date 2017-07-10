@@ -1,0 +1,15 @@
+# link the pmc_client script to a place that's in your PATH (YMMV):
+ln -s $(pwd)/../pmc_client /usr/bin/
+
+# copy the service file to /usr/lib/systemd/system and configure:
+# gentoo
+cp pmc_client.service /usr/lib/systemd/system/
+
+# debian
+cp pmc_client.service /etc/systemd/system/
+#edit the HOSTNAME in /usr/lib/systemd/system/pmc_client.service to point to your host running the pmc server instance
+
+then:
+systemctl enable pmc_client.service
+systemctl start pmc_client
+
