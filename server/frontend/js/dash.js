@@ -1,4 +1,25 @@
-    Vue.component('stringvalue', {
+Array.prototype.scaleBetween = function(scaledMin, scaledMax) {
+  var max = Math.max.apply(Math, this);
+  var min = Math.min.apply(Math, this);
+  return this.map(num => (scaledMax-scaledMin)*(num-min)/(max-min)+scaledMin);
+}
+
+
+function valueToPoint (value, index, total, res, bounds) {
+  var tx    = index * (res.x/(total));
+  var ty    = res.y - (value/(bounds[1]-bounds[0])) * res.y;
+//   console.log(tx, ty);  
+  return {
+    x: tx,
+    y: ty
+  }
+}
+
+
+
+
+
+Vue.component('stringvalue', {
   // declare the props
   props: ['values'],
   template: '<b>{{ values }}</b>'
@@ -17,6 +38,68 @@ var app = new Vue({
         server: '',
         options_visible: false,
         disconnected: true
+    },
+        directives: {
+        graph: function(canvasElement, binding) {
+            // Get canvas context
+            var ctx = canvasElement.getContext("2d");
+            var res = {
+            	x: ctx.canvas.width,
+            	y: ctx.canvas.height
+             }
+            // console.log(binding);
+            // var stats = binding.value[1];
+            // var points = binding.value.map(function(x){
+      		// 		return x.value;
+      		// 	});
+            // var labels = stats.map(function(x){
+      		// 		return x.label;
+      		// 	});
+            var points = binding.value[0]
+            var bounds = [Math.min(...points), Math.max(...points)];  
+              
+            var scaledPoints = points.scaleBetween(5, res.y)
+            var labels = binding.value[1];
+            
+            // var bounds = minmax(points);
+            // console.log('bounds', bounds);
+
+    
+            
+            // Clear the canvas
+            ctx.clearRect(0,0,res.x,res.y);
+            // Insert stuff into canvas
+            ctx.fillStyle = "rebeccapurple";
+            ctx.beginPath();
+            ctx.moveTo(0, res.y);
+            
+            for (var i = 0; i < points.length; i++) {
+            	// pt = valueToPoint(points[i], i, points.length, res, bounds)
+            	// ctx.lineTo(pt.x, pt.y);
+            	ctx.lineTo(i*(res.x/points.length), scaledPoints[i]);
+                //ctx.fillText(pt.y, pt.x, pt.y*1.1-10);
+            }
+            ctx.lineTo(res.x, res.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = "red";
+            // ctx.rotate(-Math.PI/2);
+            // for (var i = 0; i < points.length; i++) {
+                
+            //     pt = valueToPoint(points[i], i, points.length, res, bounds)
+            //     // ctx.translate(newx, newy);
+            //     ctx.fillText(pt.y, pt.x, res.y);
+            // }
+
+            // for (var i = 0; i < points.length; i++) {
+            // 	pt = valueToPoint(points[i], i, points.length, res, bounds)
+            //     ctx.fillStyle = "yellow";
+            //     ctx.fillRect(pt.x, pt.y,2,2);
+            //     //ctx.fillText(pt.y, pt.x, pt.y*1.1-10);
+            // }
+
+
+        }
     },
     computed: {
     },
@@ -232,7 +315,7 @@ function main() {
     // console.log(app.currentHostName);
     // console.log(app.currentHost);
 
-    setInterval(function () { get_all_stats()}, 5000);
+    setInterval(function () { get_all_stats()}, 1000);
 
     /*
     var xhr = new XMLHttpRequest();
