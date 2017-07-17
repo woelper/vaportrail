@@ -4,6 +4,10 @@ Array.prototype.scaleBetween = function(scaledMin, scaledMax) {
   return this.map(num => (scaledMax-scaledMin)*(num-min)/(max-min)+scaledMin);
 }
 
+function fit(s, low1, high1, low2, high2)
+{
+    return low2 + (s-low1)*(high2-low2)/(high1-low1);
+}
 
 function valueToPoint (value, index, total, res, bounds) {
   var tx    = index * (res.x/(total));
@@ -47,56 +51,72 @@ var app = new Vue({
             	x: ctx.canvas.width,
             	y: ctx.canvas.height
              }
-            // console.log(binding);
-            // var stats = binding.value[1];
-            // var points = binding.value.map(function(x){
-      		// 		return x.value;
-      		// 	});
-            // var labels = stats.map(function(x){
-      		// 		return x.label;
-      		// 	});
+            var margins = {
+                bottom: 15,
+                top: 5
+            }
             var points = binding.value[0]
-            var bounds = [Math.min(...points), Math.max(...points)];  
+            var bounds = {
+                min: Math.min(...points),
+                max: Math.max(...points)
+            };  
               
-            var scaledPoints = points.scaleBetween(5, res.y)
+            // console.log(bounds);
+            var scaledPoints = points.scaleBetween(res.y-margins.bottom-5, 10)
             var labels = binding.value[1];
             
-            // var bounds = minmax(points);
-            // console.log('bounds', bounds);
-
-    
             
             // Clear the canvas
             ctx.clearRect(0,0,res.x,res.y);
-            // Insert stuff into canvas
-            ctx.fillStyle = "rebeccapurple";
+            
+
+
+            // GRAPH
             ctx.beginPath();
-            ctx.moveTo(0, res.y);
+            ctx.moveTo(0, res.y-margins.bottom);
             
             for (var i = 0; i < points.length; i++) {
-            	// pt = valueToPoint(points[i], i, points.length, res, bounds)
-            	// ctx.lineTo(pt.x, pt.y);
             	ctx.lineTo(i*(res.x/points.length), scaledPoints[i]);
-                //ctx.fillText(pt.y, pt.x, pt.y*1.1-10);
             }
-            ctx.lineTo(res.x, res.y);
+            ctx.lineTo(res.x, res.y-margins.bottom);
             ctx.closePath();
+            ctx.fillStyle = "#cccccc";
+    
             ctx.fill();
-            ctx.fillStyle = "red";
+
+            // data point labels
             // ctx.rotate(-Math.PI/2);
-            // for (var i = 0; i < points.length; i++) {
-                
-            //     pt = valueToPoint(points[i], i, points.length, res, bounds)
-            //     // ctx.translate(newx, newy);
-            //     ctx.fillText(pt.y, pt.x, res.y);
-            // }
+            for (var i = 0; i < points.length; i++) {
+                if (points[i] == bounds.max || points[i] == bounds.min) {
+                    ctx.fillStyle = "#222222";
+                    ctx.fillText(points[i], i*(res.x/points.length), scaledPoints[i]);
+                }
+            }
 
             // for (var i = 0; i < points.length; i++) {
             // 	pt = valueToPoint(points[i], i, points.length, res, bounds)
-            //     ctx.fillStyle = "yellow";
-            //     ctx.fillRect(pt.x, pt.y,2,2);
+            //     ctx.fillStyle = "black";
+            //     ctx.fillRect(i*(res.x/points.length), scaledPoints[i], 1,1);
             //     //ctx.fillText(pt.y, pt.x, pt.y*1.1-10);
             // }
+
+            var nth = 0;
+
+            var reducer = Math.round(fit(points.length, 0, 80, 1, 10));
+            console.log(reducer);
+            for (var i = 0; i < points.length; i++) {
+                
+                if (nth == reducer || i==0) {
+                    nth = 0
+                    ctx.fillStyle = "#bbbbbb";
+                    // ctx.fillRect(i*(res.x/points.length), res.y, 1,10);
+                    ctx.fillRect(i*(res.x/points.length), res.y-margins.bottom, 1,margins.bottom+-(res.y-scaledPoints[i]));
+                    
+                    ctx.fillStyle = "#888888";
+                    ctx.fillText(labels[i], i*(res.x/points.length), res.y);
+                }
+                nth ++;
+            }
 
 
         }
