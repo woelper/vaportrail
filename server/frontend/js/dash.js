@@ -47,13 +47,27 @@ var app = new Vue({
         graph: function(canvasElement, binding) {
             // Get canvas context
             var ctx = canvasElement.getContext("2d");
+            //console.log(ctx);
+            if (ctx.canvas.clientWidth != 0) {
+                ctx.canvas.width = ctx.canvas.clientWidth*1.6;
+            }
+            if (ctx.canvas.clientHeight != 0) {
+                ctx.canvas.height = ctx.canvas.clientHeight*1.6;
+            }
             var res = {
             	x: ctx.canvas.width,
             	y: ctx.canvas.height
-             }
+            }
+            //ctx.canvas.width = ctx.canvas.clientWidth;
+            //console.log(ctx.canvas.width);
+            
+            var fontsize = {
+                default: ctx.canvas.height/10
+                }
+            
             var margins = {
-                bottom: 15,
-                top: 5
+                bottom: ctx.canvas.height/8,
+                top: ctx.canvas.height/10
             }
             var points = binding.value[0]
             var bounds = {
@@ -61,14 +75,11 @@ var app = new Vue({
                 max: Math.max(...points)
             };  
               
-            // console.log(bounds);
-            var scaledPoints = points.scaleBetween(res.y-margins.bottom-5, 10)
+            var scaledPoints = points.scaleBetween(res.y-margins.bottom-margins.top/2, margins.top)
             var labels = binding.value[1];
             
-            
             // Clear the canvas
-            ctx.clearRect(0,0,res.x,res.y);
-            
+            //ctx.clearRect(0,0,res.x,res.y);
 
 
             // GRAPH
@@ -89,6 +100,7 @@ var app = new Vue({
             for (var i = 0; i < points.length; i++) {
                 if (points[i] == bounds.max || points[i] == bounds.min) {
                     ctx.fillStyle = "#222222";
+                    ctx.font = fontsize.default + "px Arial";
                     ctx.fillText(points[i], i*(res.x/points.length), scaledPoints[i]);
                 }
             }
@@ -103,7 +115,7 @@ var app = new Vue({
             var nth = 0;
 
             var reducer = Math.round(fit(points.length, 0, 80, 1, 10));
-            console.log(reducer);
+            //console.log(reducer);
             for (var i = 0; i < points.length; i++) {
                 
                 if (nth == reducer || i==0) {
@@ -117,7 +129,6 @@ var app = new Vue({
                 }
                 nth ++;
             }
-
 
         }
     },
