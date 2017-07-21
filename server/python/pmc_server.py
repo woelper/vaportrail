@@ -19,7 +19,6 @@ except ImportError:
 urls = ("/", "Frontend" ,"/add", "add", '/request_port', 'request_port', '/dump', 'Dump', '/save', 'Save')
 
 app = web.application(urls, globals())
-SSH_PORT = 20000
 
 def is_list_of_pure_type(list_, type_):
     # bool is instance of int in python
@@ -40,7 +39,7 @@ def boolify(string):
 
 def autoconvert(string):
     """
-    Convert a string to the most probable type
+    Convert a string to the most probable native type
     """
 
     # No need to convert if it is already it's own type.
@@ -60,12 +59,14 @@ class Value(object):
     """
     Simple value class with history support.
     """
-    def __init__(self, val=None):
+    def __init__(self, val=None, keyname=None):
         self.values = []
         self.timestamps = []
         self.max_values = 45
         self.annotation = 'undetected'
         self.uniform = False
+        if keyname is not None:
+            self.keyname = keyname
         if val is not None:
             self.add(val)
 
@@ -79,7 +80,11 @@ class Value(object):
             if value.startswith('-') or value.startswith('+'):
                 return 'location'
 
+            if self.keyname == 'location' or self.keyname == 'position':
+                return 'location'
 
+
+        # if it's not some self-defined type, return the native type
         return type(value).__name__
 
     def add(self, value):
@@ -151,11 +156,13 @@ class DataBase():
                 continue
 
             serialized_data[key] = {k: v.serialize() for k, v in value.iteritems()}
+        serialized_data['stats'] = self.stats
         return serialized_data
 
 
 
     def add_or_update(self, value_dict):
+
 
         value_dict = {k: autoconvert(v) for (k, v) in value_dict.iteritems()}
 
@@ -175,7 +182,7 @@ class DataBase():
                 self.stats['values'] += 1
                 self.data[host][key].add(value)
             else:
-                self.data[host][key] = Value(value)
+                self.data[host][key] = Value(value, key)
                 self.stats['values'] += 1
 
         self.stats['updates'] += 1
@@ -196,11 +203,6 @@ class Frontend:
         raise web.seeother('static/frontend/index.html')
 
 
-class request_port:
-    def GET(self):
-        global SSH_PORT
-        SSH_PORT += 1
-        return SSH_PORT
 
 class Dump:
 
