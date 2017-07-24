@@ -71,8 +71,13 @@ pub fn add(my_host_stuff: MyHostStuff) -> &'static str {
     // let mut kvdata = Data::new();
     let mut hostname = "";
 
+    println!("my_host_stuff.items {}", &my_host_stuff.items);        
+    
     //the only convention we have: we have to have an id currently called 'host'
-    for (key, value) in FormItems(&my_host_stuff.items) {
+    let mut url = "sdsdssdsdsd";
+    let url = my_host_stuff.items.as_str();
+
+    for (key, value) in FormItems::from(url) {
         if key == id {
             println!("Host is {}", value);        
             host = true;
