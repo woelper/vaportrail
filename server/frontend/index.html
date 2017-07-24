@@ -106,29 +106,20 @@
                                 </template>
                             </div>
 
-                            <template v-if="value.uniform">
-                                
-                                <canvas width="800" height="100" style="width:100%; height:100px" v-graph="[value.values, beautyfulTime(value.timestamps)]"></canvas>
+                            <hr>
+                            {{value}}
+                            <hr>
 
-                                <!-- <line-chart
-                                height="150px"
-                                :data="chartData(beautyfulTime(value.timestamps), value.values)"
-                                :curve="false"
-                                :min="null"
-                                :library="{
-                                    chart: {backgroundColor: 'rgba(0,0,0,0.0)'},
-                                    plotOptions: {
 
-                                        series: {
-                                            animation: false,
-                                            marker: {enabled: false},
-                                            dataGrouping: {enabled: false},
-                                            }
-                                        },
-                                    colors: ['rebeccapurple']
-                                    }"
-                                ></line-chart> -->
+                            <template v-if="key == 'location'">
+                                LOCATION detected
+                                {{value}}
                             </template>
+
+                            <template v-if="value.uniform && (value.annotation == 'int' || value.annotation == 'float')">
+                                <canvas width="800" height="100" style="width:100%; height:100px" v-graph="[value.values, beautyfulTime(value.timestamps)]"></canvas>
+                            </template>
+
                             <template v-else>
                                 {{value.values[0]}}
                                 <br>
@@ -137,7 +128,6 @@
                                         <br>{{val}}
                                     </template>
                                 </div>
-                                
                             </template>
 
                         </div> <!-- dataset-->

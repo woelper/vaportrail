@@ -134,15 +134,16 @@ class DataBase():
 
     def load(self):
         """
-        Super simple JSON save method
+        Super simple JSON load method
         """
         if os.path.isfile(self.location):
             with open(self.location) as f:
                 dump_dict = json.load(f)
-            print 'LOADED DICT', dump_dict
+            print 'LOADED DICT'
             for host, values in dump_dict.iteritems():
                 for vname, vlist in values.iteritems():
                     v = Value()
+                    v.keyname = vname
                     v.deserialize(vlist['values'], vlist['timestamps'])
                     values[vname] = v
             self.data = dump_dict
