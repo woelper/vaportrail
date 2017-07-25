@@ -4,6 +4,7 @@
 extern crate rocket;
 #[macro_use]
 extern crate lazy_static;
+extern crate time;
 
 use rocket::Outcome;
 use rocket::request::{self, FormItems, FromRequest};
@@ -65,6 +66,8 @@ pub fn add(my_host_stuff: MyHostStuff) -> &'static str {
 
     let id = "host";
     let mut db = DB.write().unwrap();
+    // println!("DB {:?}", db);
+    
     let mut host = false;
     let mut web_params = HashMap::new();
  
@@ -74,7 +77,7 @@ pub fn add(my_host_stuff: MyHostStuff) -> &'static str {
     println!("my_host_stuff.items {}", &my_host_stuff.items);        
     
     //the only convention we have: we have to have an id currently called 'host'
-    let mut url = "sdsdssdsdsd";
+    // let mut url = "sdsdssdsdsd";
     let url = my_host_stuff.items.as_str();
 
     for (key, value) in FormItems::from(url) {
@@ -97,10 +100,10 @@ pub fn add(my_host_stuff: MyHostStuff) -> &'static str {
     println!("last kvdata {:?}", web_params);
     // insert only new items
     if db.contains_key(&hostname.to_string()) {
-        println!("host already present: {:?}", hostname);
+        println!("Updating: {:?}", hostname);
 
         if let Some(vals) = db.get_mut(&hostname.to_string()) {
-            println!("vals {:?}", vals);
+            println!("prev vals {:?}", vals);
 
         }
         // assert_eq!(db["host"], "b");
@@ -122,9 +125,12 @@ pub fn add(my_host_stuff: MyHostStuff) -> &'static str {
 
         // let mut val: EntryValue;
         // val = EntryValue(1);
-        let mut entry = Entry {val: "ds".to_string(), timestamp: 3123};
+        let mut entry = Entry {
+            val: "ds".to_string(),
+            timestamp: time::get_time().nsec as i64
+            };
         entry.val = "1".to_string();
-        entry.timestamp = 2312423423;
+        // entry.timestamp = time::precise_time_s();
 
         let mut entry_log = EntryLog::new();
         entry_log.push(entry);
@@ -145,14 +151,14 @@ pub fn add(my_host_stuff: MyHostStuff) -> &'static str {
             
             println!("k={} v={}", key, value);
             let mut entry_log = EntryLog::new();
-            let entry = Entry {val: value.to_string(), timestamp: 3123};
+            let entry = Entry {val: value.to_string(), timestamp: time::get_time().nsec as i64};
             entry_log.push(entry);
             data.insert(key.to_string(), entry_log);
         }
 
 
         db.insert(hostname.to_string(), data);
-        println!("{:?}", db);
+
         return "No host by this name, adding.";
     
     }

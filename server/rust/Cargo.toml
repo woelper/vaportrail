@@ -7,3 +7,4 @@ authors = ["Johann Woelper <woelper@gmail.com>"]
 rocket = "0.*"
 rocket_codegen = "0.*"
 lazy_static = "0.1.*"
+time = "0.1"
