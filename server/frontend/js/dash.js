@@ -4,6 +4,69 @@ Array.prototype.scaleBetween = function(scaledMin, scaledMax) {
   return this.map(num => (scaledMax-scaledMin)*(num-min)/(max-min)+scaledMin);
 }
 
+// Date.prototype.getUnixTime = function() { return this.getTime()/1000|0 };
+
+function isURL(str) {
+  var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+  '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.?)+[a-z]{2,}|'+ // domain name
+  '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+  '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+  '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+  '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+  return pattern.test(str);
+}
+
+function unixTimeToDate(timestamp) {
+    return new Date(timestamp * 1000);
+}
+
+function niceTime(date) {
+    now = new Date();
+    var month = date.getMonth() + 1;
+    var day = date.getDate();
+    var hour = date.getHours();
+    var minute = "0" + date.getMinutes();
+    var second = "0" + date.getSeconds();
+    if (now.getDate() == day) {
+        var formattedTime = hour + ':' + minute.substr(-2);    
+    } else {
+        var formattedTime = month + '/' + day + '/' + hour + ':' + minute.substr(-2);    
+    }
+    return formattedTime;
+}
+
+function niceTimeDelta(then) {
+    var now = new Date();
+    var delta = (now - then);  
+    var sDelta = delta / 1000; //in s
+    return niceSecondDelta(sDelta);
+}
+
+function niceSecondDelta(seconds) {
+
+    var displaystring = '';
+    var hrt = {};
+
+    hrt.days = { value: Math.floor(seconds / 3600 / 24), label: 'd'};
+    hrt.hours = { value: Math.floor(seconds / 3600 - 24 * hrt.days.value), label: 'h'};
+    hrt.minutes = { value: Math.floor(seconds / 60 - 60 * hrt.hours.value - 24 * hrt.days.value * 60), label: 'm'};
+    hrt.seconds = { value: Math.floor(seconds - hrt.minutes.value * 60 - hrt.hours.value * 3600 - hrt.days.value * 24 * 3600), label: 's'};
+
+    for (i in hrt) {
+        // leave out empty values
+        if (hrt[i].value != 0) {
+            //cull date data
+            if (hrt[i].label == 'd') {hrt.seconds.value = 0};
+            if (hrt[i].label == 'd') {hrt.minutes.value = 0};
+            if (hrt[i].label == 'h') {hrt.seconds.value = 0};
+
+            displaystring += (hrt[i].value + hrt[i].label);
+        }
+    }
+
+    return displaystring;
+}
+
 function fit(s, low1, high1, low2, high2)
 {
     return low2 + (s-low1)*(high2-low2)/(high1-low1);
@@ -20,7 +83,25 @@ function valueToPoint (value, index, total, res, bounds) {
 }
 
 
+function stringToType(s, hint) {
+    
+    var type = 'string';
+    var value = s
 
+    if (+s === +s) {
+        value = parseFloat(s);
+        type = 'number';
+    } else if (hint == 'location') {
+        type = 'location';
+        
+    }
+
+
+    return {
+        type: type,
+        value: value
+    }
+}
 
 
 Vue.component('stringvalue', {
@@ -43,7 +124,8 @@ var app = new Vue({
         options_visible: false,
         disconnected: true
     },
-        directives: {
+    directives: {
+            
         graph: function(canvasElement, binding) {
             // Get canvas context
             var ctx = canvasElement.getContext("2d");
@@ -105,12 +187,7 @@ var app = new Vue({
                 }
             }
 
-            // for (var i = 0; i < points.length; i++) {
-            // 	pt = valueToPoint(points[i], i, points.length, res, bounds)
-            //     ctx.fillStyle = "black";
-            //     ctx.fillRect(i*(res.x/points.length), scaledPoints[i], 1,1);
-            //     //ctx.fillText(pt.y, pt.x, pt.y*1.1-10);
-            // }
+
 
             var nth = 0;
 
@@ -130,8 +207,38 @@ var app = new Vue({
                 nth ++;
             }
 
-        }
+        },
+    
+        location: function (canvasElement, binding) {
+
+            console.log(binding);
+            // canvasElement.innerHTML = 'sds';
+            // map = new OpenLayers.Map('mapp');
+            map = new OpenLayers.Map(canvasElement);
+            console.log(map);
+            
+            map.addLayer(new OpenLayers.Layer.OSM());
+
+            var lonLat = new OpenLayers.LonLat( -0.1279688 ,51.5077286 )
+                .transform(
+                    new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+                    map.getProjectionObject() // to Spherical Mercator Projection
+                );
+                
+            var zoom=16;
+
+            var markers = new OpenLayers.Layer.Markers( "Markers" );
+            map.addLayer(markers);
+            
+            markers.addMarker(new OpenLayers.Marker(lonLat));
+            map.setCenter(lonLat, zoom);
+            console.log('done map');
+        },
+
+        misc: function (canvasElement, binding) { }
     },
+
+
     computed: {
     },
 
@@ -151,15 +258,19 @@ var app = new Vue({
 
     mounted() {
         console.log('mount done');
+
+
+
+
     },
 
     methods: {
     
-        drawSVG: function () {
-            return '';
+        getType: function (values, name) {
+            return stringToType(values[0], name);
         },
         
-        isOffline: function (timeseries) {
+        isOffline: function(timeseries) {
             var cumulatedTime = 0;
             const threshold = 1.5;
 
@@ -176,7 +287,7 @@ var app = new Vue({
             return false;
         },
 
-        beautyfulTime: function (timeseries) {
+        beautyfulTime: function(timeseries) {
             var newTime = [];
             for (var i = 0; i < timeseries.length; i++) {
                 var time = unixTimeToDate(timeseries[i]);
@@ -185,14 +296,7 @@ var app = new Vue({
             return newTime;
         },
 
-        chartData: function (arr1, arr2) {
-            var data = [];
-            if (arr1.length != arr2.length) {return []};
-            for (var i = 0; i < arr1.length; i++) {
-                data.push([arr1[i], arr2[i]]);
-            }        
-            return data;
-        },
+
   }
 
 });
@@ -201,68 +305,8 @@ var app = new Vue({
 
 
 
-function isURL(str) {
-  var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
-  '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.?)+[a-z]{2,}|'+ // domain name
-  '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
-  '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
-  '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
-  '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
-  return pattern.test(str);
-}
 
-// Date.prototype.getUnixTime = function() { return this.getTime()/1000|0 };
 
-function unixTimeToDate(timestamp) {
-    return new Date(timestamp * 1000);
-}
-
-function niceTime(date) {
-    now = new Date();
-    var month = date.getMonth() + 1;
-    var day = date.getDate();
-    var hour = date.getHours();
-    var minute = "0" + date.getMinutes();
-    var second = "0" + date.getSeconds();
-    if (now.getDate() == day) {
-        var formattedTime = hour + ':' + minute.substr(-2);    
-    } else {
-        var formattedTime = month + '/' + day + '/' + hour + ':' + minute.substr(-2);    
-    }
-    return formattedTime;
-}
-
-function niceTimeDelta(then) {
-    var now = new Date();
-    var delta = (now - then);  
-    var sDelta = delta / 1000; //in s
-    return niceSecondDelta(sDelta);
-}
-
-function niceSecondDelta(seconds) {
-
-    var displaystring = '';
-    var hrt = {};
-
-    hrt.days = { value: Math.floor(seconds / 3600 / 24), label: 'd'};
-    hrt.hours = { value: Math.floor(seconds / 3600 - 24 * hrt.days.value), label: 'h'};
-    hrt.minutes = { value: Math.floor(seconds / 60 - 60 * hrt.hours.value - 24 * hrt.days.value * 60), label: 'm'};
-    hrt.seconds = { value: Math.floor(seconds - hrt.minutes.value * 60 - hrt.hours.value * 3600 - hrt.days.value * 24 * 3600), label: 's'};
-
-    for (i in hrt) {
-        // leave out empty values
-        if (hrt[i].value != 0) {
-            //cull date data
-            if (hrt[i].label == 'd') {hrt.seconds.value = 0};
-            if (hrt[i].label == 'd') {hrt.minutes.value = 0};
-            if (hrt[i].label == 'h') {hrt.seconds.value = 0};
-
-            displaystring += (hrt[i].value + hrt[i].label);
-        }
-    }
-
-    return displaystring;
-}
 
 function get_all_stats() {
 
@@ -346,7 +390,7 @@ function main() {
     // console.log(app.currentHostName);
     // console.log(app.currentHost);
 
-    setInterval(function () { get_all_stats()}, 1000);
+    setInterval(function () { get_all_stats()}, 10000);
 
     /*
     var xhr = new XMLHttpRequest();
