@@ -188,7 +188,6 @@ var app = new Vue({
             }
 
 
-
             var nth = 0;
 
             var reducer = Math.round(fit(points.length, 0, 80, 1, 10));
@@ -211,28 +210,38 @@ var app = new Vue({
     
         location: function (canvasElement, binding) {
 
-            console.log(binding);
-            // canvasElement.innerHTML = 'sds';
-            // map = new OpenLayers.Map('mapp');
-            map = new OpenLayers.Map(canvasElement);
-            console.log(map);
-            
-            map.addLayer(new OpenLayers.Layer.OSM());
+            function strToLatlong(inputString) {
+                console.log('examine', inputString);
+                var split = inputString.split(',');
+                var long = split[1];
+                var lat = split[0];
+                                
+                return {
+                    lat: lat,
+                    long: long
+                }
+            }
 
-            var lonLat = new OpenLayers.LonLat( -0.1279688 ,51.5077286 )
-                .transform(
-                    new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-                    map.getProjectionObject() // to Spherical Mercator Projection
-                );
-                
-            var zoom=16;
+            var pos = strToLatlong(binding.value[0]);
 
-            var markers = new OpenLayers.Layer.Markers( "Markers" );
-            map.addLayer(markers);
-            
-            markers.addMarker(new OpenLayers.Marker(lonLat));
-            map.setCenter(lonLat, zoom);
-            console.log('done map');
+            // clear
+            canvasElement.innerHTML = '';
+
+            map = new OpenLayers.Map(canvasElement.id, {
+                projection: 'EPSG:3857',
+                layers: [
+                    new OpenLayers.Layer.OSM()
+                ],
+                center: new OpenLayers.LonLat(pos.long, pos.lat)
+                    // Google.v3 uses web mercator as projection, so we have to
+                    // transform our coordinates
+                    .transform('EPSG:4326', 'EPSG:3857'),
+                zoom: 16
+            });
+            map.addControl(new OpenLayers.Control.LayerSwitcher());
+    
+
+      
         },
 
         misc: function (canvasElement, binding) { }
