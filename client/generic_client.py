@@ -69,7 +69,7 @@ class Client():
             t.start()
 
         while True:
-            #just stay active
+            # just stay active
             time.sleep(10)
 
 
@@ -79,11 +79,17 @@ if __name__ == '__main__':
     parser.add_argument('--hostname', default=None, help='Set custom hostname')
     args = parser.parse_args()
        
-    from plugins import *
-    
+    import plugins
+
+    for plugin in plugins.__all__:
+        try:
+            __import__('{}.{}'.format(plugins.__name__, plugin))
+        except: # This is broad on purpose, I have no idea what errors could happen here...
+            print plugin, 'could not be loaded'
+
     active_plugins = []
     for modname, mod in sys.modules.iteritems():
-        if modname.startswith('plugins.') and not 'base_' in modname:
+        if modname.startswith(plugins.__name__) and not 'base_' in modname:
             plugin_directory = dir(mod)
             if 'run' in plugin_directory and 'INTERVAL' in plugin_directory:
                 active_plugins.append(mod)

@@ -10,7 +10,7 @@ import math
 
 
 # Those come in from the base_plugin as default. You can override them here
-INTERVAL = 20
+INTERVAL = 0.03
 CATEGORY = 'test'
 
 
@@ -21,4 +21,5 @@ def run():
     This function must return a dictionary
     """
 
+    # to test high update rates, draw a sine curve
     return {'sine': math.sin(time.time()*2)+1}

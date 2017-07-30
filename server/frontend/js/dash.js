@@ -399,7 +399,7 @@ function main() {
     // console.log(app.currentHostName);
     // console.log(app.currentHost);
 
-    setInterval(function () { get_all_stats()}, 10000);
+    setInterval(function () { get_all_stats()}, 17);
 
     /*
     var xhr = new XMLHttpRequest();

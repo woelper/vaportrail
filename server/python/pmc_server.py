@@ -157,7 +157,7 @@ class DataBase():
                 continue
 
             serialized_data[key] = {k: v.serialize() for k, v in value.iteritems()}
-        serialized_data['stats'] = self.stats
+        #serialized_data['stats'] = self.stats
         return serialized_data
 
 
@@ -165,7 +165,8 @@ class DataBase():
     def add_or_update(self, value_dict):
 
 
-        value_dict = {k: autoconvert(v) for (k, v) in value_dict.iteritems()}
+        # leave as is
+        #value_dict = {k: autoconvert(v) for (k, v) in value_dict.iteritems()}
 
         # make sure there is a 'host entry'. Fail otherwise.
         if not 'host' in value_dict.keys():
@@ -186,7 +187,7 @@ class DataBase():
                 self.data[host][key] = Value(value, key)
                 self.stats['values'] += 1
 
-        self.stats['updates'] += 1
+        # self.stats['updates'] += 1
         return 'Your host {} was added.'.format(host)
 
 
