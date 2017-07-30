@@ -18,9 +18,11 @@ Features:
 * Client/Server model: Server logs, Server frontent displays, client reports
 * The server is a central hub to access and monitor your machines
 * Superfast charts: Canvas rendering delivers realtime updates of dynamic data
+* given sufficient network speed rendering can happen at 60 fps
 * Responsive modern UI
 * Logging data is as easy as opening http://yourhost.com/add?host=mydevice&temperature=300
 
+![](screenshots/livepreview.gif)
 
 ## WIP:
 
