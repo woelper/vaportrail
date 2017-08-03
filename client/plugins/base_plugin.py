@@ -9,8 +9,7 @@ They just need a run method and an INTERVAL int interval.
 
 # set an interval in seconds
 INTERVAL = 1000
-CATEGORY = 'default'
-
+CATEGORY = None
 
 # use the run funtion to do your logic
 def run():

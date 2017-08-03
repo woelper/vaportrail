@@ -6,6 +6,7 @@ import sys
 import argparse
 import os
 import threading
+import socket
 
 class Client():
 
@@ -30,15 +31,19 @@ class Client():
             result = {}
             try:
                 result = plugin.run()
-            except:
-                print 'plugin failed'
+            except Exception as e:
+                print 'plugin failed to run:', e
                 return
 
             # dismiss empty values
             if result == {}:
                 return
 
-            result['host'] = plugin.CATEGORY
+            # a CATEGORY could override the reporter's host if set.
+            if plugin.CATEGORY is not None:
+                result['host'] = plugin.CATEGORY
+            else:
+                result['host'] = socket.gethostname()
 
             if self.custom_hostname is not None:
                 result['host'] = self.custom_hostname
@@ -84,8 +89,8 @@ if __name__ == '__main__':
     for plugin in plugins.__all__:
         try:
             __import__('{}.{}'.format(plugins.__name__, plugin))
-        except: # This is broad on purpose, I have no idea what errors could happen here...
-            print plugin, 'could not be loaded'
+        except Exception as e: # This is broad on purpose, I have no idea what errors could happen here...
+            print plugin, 'could not be loaded:', e
 
     active_plugins = []
     for modname, mod in sys.modules.iteritems():

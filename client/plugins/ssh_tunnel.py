@@ -24,7 +24,6 @@ import os
 
 # Those come in from the base_plugin as default. You can override them here
 INTERVAL = 30.0
-CATEGORY = 'ssh'
 PID = None
 SSH_HOST = 'myhost'
 
@@ -37,18 +36,12 @@ def init_tunnel(server_address, remote_port, local_port=22):
         # print 'determining PID'
         processes = subprocess.check_output(['ps', '-fx'])
         for line in processes.splitlines():
-            # print line
             if appstring in line:
-                # print '>>>', line
                 pid = line.split()[0]
-                # print 'PID', pid
                 return pid
 
     global PID
-    # cmd = ['ssh', '-f', '-N', '-T', '-R'+ str(remote_port) + ':127.0.0.1:' + str(local_port), server_address]
     cmd = ['ssh', '-f', '-N', '-T', '-R{}:127.0.0.1:{}'.format(remote_port,local_port), server_address]
-
-    #ssh -f -N -T -R22222:localhost:22 user@host
     try:
         proc = Popen(cmd, preexec_fn=os.setsid)
         proc.wait() # otherwise the PID won't be correct. proc.pid is of no help.
@@ -63,8 +56,6 @@ def run():
     """
     This function must return a dictionary
     """
-
-    print 'PID', PID
 
     def connect():
         port = find_open_port(SSH_HOST)
@@ -93,11 +84,6 @@ def run():
                 return start_port + i
     
     if PID is None:
-        # no session running
-        # port = find_open_port(SSH_HOST)
-        # if init_tunnel(SSH_HOST, port):
-        #     print 'Tunnel initialized, pid:', PID
-        #     return {'ssh tunnel entry': 'ssh://{}:{}'.format(SSH_HOST, port)}
         return connect()
     else:
         # check if process is still alive
@@ -105,8 +91,6 @@ def run():
             print 'Tunnel still active. Not doing anything.'
         else:
             return connect()            
-
-
 
 if __name__ == '__main__':
     print run()
