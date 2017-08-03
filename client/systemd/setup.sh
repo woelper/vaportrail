@@ -1,5 +1,5 @@
 
-BIN=$(pwd)/../base_plugin.py
+BIN=$(dirname $(pwd))/generic_client.py
 NAME=vaportrail
 echo Please enter your vapor trail server name
 read HOST
@@ -21,6 +21,7 @@ echo '' >> $SYSTEMD_DIR/$NAME.service
 echo '[Install]' >> $SYSTEMD_DIR/$NAME.service
 echo 'WantedBy=multi-user.target' >> $SYSTEMD_DIR/$NAME.service
 
+systemctl daemon-reload
 systemctl enable $SYSTEMD_DIR/$NAME.service
 systemctl start $SYSTEMD_DIR/$NAME
 
