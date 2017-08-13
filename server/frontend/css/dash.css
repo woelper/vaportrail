@@ -5,6 +5,7 @@
 }
 
 .offlinebadge {
+  /* display: flex; */
   margin-left: auto;
   background-color: rgb(233, 30, 99);
   border-radius: 10px;
@@ -22,6 +23,11 @@
 .sourcename {
   display: flex;
   align-items: center;
+}
+
+.source-details {
+  font-size: 0.7em;
+  color: #333;
 }
 
 

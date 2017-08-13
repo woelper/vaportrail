@@ -16,6 +16,18 @@ function isURL(str) {
   return pattern.test(str);
 }
 
+function detectInterval(timeseries) {
+    var cumulatedTime = 0;
+    
+    for (var i = 0; i < timeseries.length-1; i++) {
+        cumulatedTime += timeseries[i] - timeseries[i+1];
+    }
+    
+    var avgTime = cumulatedTime / timeseries.length;
+    return avgTime;
+}
+
+
 function unixTimeToDate(timestamp) {
     return new Date(timestamp * 1000);
 }
@@ -104,11 +116,7 @@ function stringToType(s, hint) {
 }
 
 
-Vue.component('stringvalue', {
-  // declare the props
-  props: ['values'],
-  template: '<b>{{ values }}</b>'
-})
+
 
 var app = new Vue({
     el: '#vue',
@@ -149,7 +157,7 @@ var app = new Vue({
             
             var margins = {
                 bottom: ctx.canvas.height/8,
-                top: ctx.canvas.height/10
+                top: ctx.canvas.height/4
             }
             var points = binding.value[0]
             var bounds = {
@@ -183,7 +191,16 @@ var app = new Vue({
                 if (points[i] == bounds.max || points[i] == bounds.min) {
                     ctx.fillStyle = "#222222";
                     ctx.font = fontsize.default + "px Arial";
-                    ctx.fillText(points[i], i*(res.x/points.length), scaledPoints[i]);
+                    var x = i * (res.x / points.length)
+                    var y = scaledPoints[i]
+                    
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.rotate(-Math.PI/6);
+                    // ctx.textAlign = "center";
+                    // ctx.fillText(points[i], x, y);
+                    ctx.fillText(points[i], 0, 0);
+                    ctx.restore();
                 }
             }
 
@@ -244,7 +261,12 @@ var app = new Vue({
       
         },
 
-        misc: function (canvasElement, binding) { }
+        misc: function (canvasElement, binding) {
+
+            canvasElement.innerHTML = binding.value[0][0] + " (" + binding.value[1][0] + " ago)";
+        }
+
+
     },
 
 
@@ -279,18 +301,15 @@ var app = new Vue({
             return stringToType(values[0], name);
         },
         
-        isOffline: function(timeseries) {
-            var cumulatedTime = 0;
-            const threshold = 1.5;
 
-            for (var i = 0; i < timeseries.length-1; i++) {
-                cumulatedTime += timeseries[i] - timeseries[i+1];
-            }
-            
-            var avgTime = cumulatedTime / timeseries.length;
+        getInterval: function (timeseries) {
+            return detectInterval(timeseries)
+        },
+
+        isOffline: function(timeseries) {
+            const threshold = 1.5;
             var timeSinceLastUpdate = new Date().getTime() / 1000 - timeseries[0];
-            // console.log(avgTime, timeSinceLastUpdate);
-            if (avgTime * threshold < timeSinceLastUpdate) {
+            if (detectInterval(timeseries) * threshold < timeSinceLastUpdate) {
                 return true;
             }
             return false;
