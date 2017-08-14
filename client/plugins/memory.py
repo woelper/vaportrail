@@ -58,8 +58,12 @@ def run():
     This function must return a dictionary
     """
 
-    # to test high update rates, draw a sine curve
-    return {'mem': get_meminfo()}
+    mem = get_meminfo()
+    return {
+        'Mem Total': mem[0],
+        'Mem Used': mem[1],
+        'Mem Free': mem[2]
+    }
 
 if __name__ == '__main__':
     print run()

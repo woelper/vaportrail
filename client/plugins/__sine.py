@@ -11,7 +11,7 @@ import math
 
 # Those come in from the base_plugin as default. You can override them here
 INTERVAL = 1.0
-CATEGORY = 'testing'
+CATEGORY = None
 
 
 

@@ -17,13 +17,15 @@ from cpu import get_cpuinfo
 
 # use the run funtion to do your logic
 def run():
-    """
-    This function must return a dictionary
-    """
+
 
     load = get_cpuinfo()
     if load > 80:
-        return {'cpu_peak': load}
+        return {'CPU peak load events': load}
+    """
+    just return an empty dict if we don't match criteria. Empty dicts will be
+    discarded and the plugin will run at next INTERVAL.
+    """
     return {}
 
 if __name__ == '__main__':

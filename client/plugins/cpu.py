@@ -11,7 +11,7 @@ from subprocess import Popen, PIPE
 import multiprocessing
 
 # Those come in from the base_plugin as default. You can override them here
-INTERVAL = 1.0
+INTERVAL = 60.0
 
 def get_cpuinfo():
     """
@@ -34,17 +34,18 @@ def get_cpuinfo():
 
     else:
         num_cpu = multiprocessing.cpu_count()
+        load = False
         try:
             load = subprocess.check_output('uptime').rstrip()
             load = load.split('age: ')[1].split('  ')[0].split(',')[1]
         except:
-            load = False
-        if load:
-            try:
-                load = float(load)
-                load = load/num_cpu*100
-            except ValueError:
-                print 'could not convert cpu to float value. Check uptime format.'
+            pass
+
+        try:
+            load = float(load)
+            load = load/num_cpu*100
+        except ValueError:
+            print 'could not convert cpu to float value. Check uptime format.'
         return load
 
 # use the run funtion to do your logic
@@ -53,7 +54,7 @@ def run():
     This function must return a dictionary
     """
 
-    return {'live_cpu': get_cpuinfo()}
+    return {'CPU usage': get_cpuinfo()}
 
 if __name__ == '__main__':
     print run()

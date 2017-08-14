@@ -25,7 +25,7 @@ import os
 # Those come in from the base_plugin as default. You can override them here
 INTERVAL = 30.0
 PID = None
-SSH_HOST = 'myhost'
+SSH_HOST = None
 
 def init_tunnel(server_address, remote_port, local_port=22):
     """
@@ -57,6 +57,11 @@ def run():
     This function must return a dictionary
     """
 
+    if SSH_HOST is None:
+            print 'SSH_HOST not set. Please configure if you want tunnel support.'
+            return {}
+
+
     def connect():
         port = find_open_port(SSH_HOST)
         if init_tunnel(SSH_HOST, port):
@@ -83,6 +88,9 @@ def run():
             else:
                 return start_port + i
     
+
+    
+
     if PID is None:
         return connect()
     else:

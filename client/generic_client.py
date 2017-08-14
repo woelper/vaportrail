@@ -50,16 +50,22 @@ class Client():
             timer = time.time()
             request = urllib2.Request(self.post_url, urllib.urlencode(result))
             
+            msg =  [plugin.__name__, ':']
+
             try:
                 response = urllib2.urlopen(request)
-                print response.read()
+                msg.append(response.read())
             except urllib2.URLError:
-                print 'Could not connect to ' + self.post_url
+                msg += ['Could not connect to', self.post_url]
 
-            print 'ran', plugin.__name__, 'in', time.time() - timer
-            time.sleep(plugin.INTERVAL)
+            msg += ['in', time.time() - timer]
+            msg = [str(s) for s in msg]
+            print '{}'.format(' '.join(msg))
+        
         while True:
             loop()
+            time.sleep(plugin.INTERVAL)
+            
 
 
     def dispatch_plugins(self):
@@ -67,7 +73,7 @@ class Client():
         Fire up each plugin in a thread
         """
         for p in self.plugins:
-            print 'launch plugin', p.__name__
+            print '[[[ Launching Plugin: {} ]]]'.format(p.__name__)
             t = threading.Thread(target=self.run_plugin_in_background, args=(p,))
             t.daemon = True
             self.threads.append(t)
@@ -75,7 +81,9 @@ class Client():
 
         while True:
             # just stay active
-            time.sleep(10)
+            time.sleep(20)
+            print self.threads
+
 
 
 if __name__ == '__main__':

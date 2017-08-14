@@ -11,7 +11,7 @@ from subprocess import Popen, PIPE
 import multiprocessing
 
 # Those come in from the base_plugin as default. You can override them here
-INTERVAL = 600
+INTERVAL = 0.5
 
 from cpu import get_cpuinfo
 
@@ -20,7 +20,7 @@ def run():
     """
     This function must return a dictionary
     """
-    return {'cpu': get_cpuinfo()}
+    return {'Live CPU Usage': get_cpuinfo()}
 
 if __name__ == '__main__':
     print run()
