@@ -5,6 +5,17 @@ Array.prototype.scaleBetween = function(scaledMin, scaledMax) {
 }
 
 // Date.prototype.getUnixTime = function() { return this.getTime()/1000|0 };
+function strToLatlong(inputString) {
+    // console.log('examine', inputString);
+    var split = inputString.split(',');
+    var long = split[1];
+    var lat = split[0];
+                    
+    return {
+        lat: lat,
+        long: long
+    }
+}
 
 function isURL(str) {
   var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
@@ -130,7 +141,9 @@ var app = new Vue({
         updateid: 1,
         server: '',
         options_visible: false,
-        disconnected: true
+        disconnected: true,
+        maps: [],
+        currentMap: undefined
     },
     directives: {
             
@@ -225,38 +238,125 @@ var app = new Vue({
 
         },
     
+
+
+
+
         location: function (canvasElement, binding) {
 
-            function strToLatlong(inputString) {
-                console.log('examine', inputString);
-                var split = inputString.split(',');
-                var long = split[1];
-                var lat = split[0];
-                                
-                return {
-                    lat: lat,
-                    long: long
-                }
-            }
-
             var pos = strToLatlong(binding.value[0]);
+            var lonlat = new OpenLayers.LonLat(pos.long, pos.lat).transform('EPSG:4326', 'EPSG:3857');
+            var layer = new OpenLayers.Layer.OSM();
+
+            // console.log(canvasElement.id)
+
+            //Map already created?
+            // if (canvasElement.className == 'olMap') {
+               
+            //     //get map
+            //     // var currentMap = undefined;
+
+            //     // for (m in app.maps) {
+            //     //     // console.log(app.maps[m]);
+            //     //     if (app.maps[m].identifier == canvasElement.id) {
+            //     //         currentMap = app.maps[m]
+            //     //         // console.log('found', currentMap);
+            //     //     }
+            //     // }
+
+            //     //did data change?
+            //     //is there history?
+            //     // if (binding.value.length > 1) {
+            //     //     console.log('there is historic map data');
+            //     //     if (binding.value[0] != binding.value[1]){
+            //     //         //value changed
+            //     //         console.log('data changed');
+            //     //         canvasElement.innerHTML = '';
+            //     //         var map = new OpenLayers.Map(canvasElement.id, {
+            //     //             projection: 'EPSG:3857',
+            //     //             layers: [
+            //     //                 layer
+            //     //             ],
+            //     //             // center: new OpenLayers.LonLat(pos.long, pos.lat).transform('EPSG:4326', 'EPSG:3857'),
+            //     //             center: lonlat,
+            //     //             zoom: 16
+            //     //         });
+            //     //     }
+            //     // }
+
+            //     // if ( currentMap != undefined ) {
+            //     // }
+
+            //     return
+            // }
+
+
 
             // clear
-            canvasElement.innerHTML = '';
+            
 
-            map = new OpenLayers.Map(canvasElement.id, {
-                projection: 'EPSG:3857',
-                layers: [
-                    new OpenLayers.Layer.OSM()
-                ],
-                center: new OpenLayers.LonLat(pos.long, pos.lat)
-                    // Google.v3 uses web mercator as projection, so we have to
-                    // transform our coordinates
-                    .transform('EPSG:4326', 'EPSG:3857'),
-                zoom: 16
-            });
-            map.addControl(new OpenLayers.Control.LayerSwitcher());
-    
+
+            // var map = new OpenLayers.Map(canvasElement.id, {
+            //     projection: 'EPSG:3857',
+            //     layers: [
+            //         new OpenLayers.Layer.OSM()
+            //     ],
+            //     center: lonlat,
+            // });
+
+            // map.zoom = 16;
+
+
+            // var map = new OpenLayers.Map(canvasElement.id, {
+            //     projection: 'EPSG:3857',
+            //     layers: [
+            //         layer
+            //     ],
+            //     // center: new OpenLayers.LonLat(pos.long, pos.lat).transform('EPSG:4326', 'EPSG:3857'),
+            //     center: lonlat,
+            //     zoom: 16
+            // });
+
+
+            if ( app.currentMap == undefined) {
+                canvasElement.innerHTML = '';
+                app.currentMap = new OpenLayers.Map( {
+                    projection: 'EPSG:3857',
+                    layers: [
+                        layer
+                    ],
+                    // center: new OpenLayers.LonLat(pos.long, pos.lat).transform('EPSG:4326', 'EPSG:3857'),
+                    center: lonlat,
+                    zoom: 16
+                });
+                // app.currentMap.render(canvasElement.id);
+            } else {
+                app.currentMap.center = lonlat;
+                // app.currentMap.render(canvasElement.id);
+                console.log('update');
+                // app.currentMap.zoom = Math.random()*10;
+            }
+
+            
+            app.currentMap.render(canvasElement.id);
+
+            // // map.addControl(new OpenLayers.Control.LayerSwitcher());
+            // map.identifier = canvasElement.id;
+            // var mapPresent = false;
+
+            // for (m in app.maps) {
+            //     if (app.maps[m].identifier == map.identifier) {
+            //         mapPresent = true
+            //     }
+            // }
+
+
+            // // console.log(app.maps);
+            // if (! mapPresent) {
+            //     app.maps.push(map);
+            //     console.log('added map');
+            // };
+
 
       
         },
@@ -418,7 +518,7 @@ function main() {
     // console.log(app.currentHostName);
     // console.log(app.currentHost);
 
-    setInterval(function () { get_all_stats()}, 250);
+    setInterval(function () { get_all_stats()}, 500);
 
     /*
     var xhr = new XMLHttpRequest();

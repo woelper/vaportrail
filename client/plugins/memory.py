@@ -60,8 +60,7 @@ def run():
 
     mem = get_meminfo()
     return {
-        'Mem Total': mem[0],
-        'Mem Used': mem[1],
+        'Mem Total': '{} available'.format(mem[0]),
         'Mem Free': mem[2]
     }
 
