@@ -53,6 +53,16 @@
                 <div class="optiongroup">
                     <div class="optionitem">Refresh delay</div>
                     <div class="optionitem" id="interval">3s</div>
+                    <br>
+                    <div class="optionitem">Plot Average
+                        <input type="checkbox" id="checkAvg" v-model="graphAverage">
+                        <label for="checkAvg">{{ graphAverage }}</label>
+                    </div>
+                    <br>
+                    <div class="optionitem">Plot Trend
+                        <input type="checkbox" id="checkTrend" v-model="graphTrend">
+                        <label for="checkTrend">{{ graphTrend }}</label>
+                    </div>
                 </div>
                 <p style="width:200px">
                     <input id="slider-interval" class="mdl-slider mdl-js-slider" type="range" min="1" max="20" value="10" tabindex="0" >

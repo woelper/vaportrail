@@ -120,8 +120,6 @@ function stringToType(s, hint) {
         type = 'location';
         
     }
-
-
     return {
         type: type,
         value: value
@@ -144,8 +142,9 @@ var app = new Vue({
         server: '',
         options_visible: false,
         disconnected: true,
-        maps: [],
-        currentMap: undefined
+        currentMap: undefined,
+        graphAverage: false,
+        graphTrend: false
     },
     directives: {
             
