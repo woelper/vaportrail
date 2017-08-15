@@ -59,12 +59,10 @@ class Value(object):
     """
     Simple value class with history support.
     """
-    def __init__(self, val=None, keyname=None):
+    def __init__(self, val=None):
         self.values = []
         self.timestamps = []
         self.max_values = 45
-        if keyname is not None:
-            self.keyname = keyname
         if val is not None:
             self.add(val)
 
@@ -100,7 +98,12 @@ class Value(object):
 class DataBase():
     def __init__(self):
         self.data = {}
-        self.stats = {'host': 'Statistics', 'updates': 0, 'values': 0}
+        self.stats = {
+            'updates': {
+                'values' : [0],
+                'timestamps': [0]
+            }
+        }
         self.location = 'dump.db'
 
     def save(self):
@@ -123,7 +126,6 @@ class DataBase():
             for host, values in dump_dict.iteritems():
                 for vname, vlist in values.iteritems():
                     v = Value()
-                    v.keyname = vname
                     v.deserialize(vlist['values'], vlist['timestamps'])
                     values[vname] = v
             self.data = dump_dict
@@ -161,11 +163,11 @@ class DataBase():
 
         for key, value in value_dict.iteritems():
             if key in self.data[host]:
-                self.stats['values'] += 1
+                self.stats['updates']['values'][0] += 1
                 self.data[host][key].add(value)
             else:
-                self.data[host][key] = Value(value, key)
-                self.stats['values'] += 1
+                self.data[host][key] = Value(value)
+                #self.stats['values'] += 1
 
         # self.stats['updates'] += 1
         return 'Your host {} was added.'.format(host)
