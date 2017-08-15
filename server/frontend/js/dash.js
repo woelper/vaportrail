@@ -1,3 +1,5 @@
+const ENDPOINT = '/dump';
+
 Array.prototype.scaleBetween = function(scaledMin, scaledMax) {
   var max = Math.max.apply(Math, this);
   var min = Math.min.apply(Math, this);
@@ -161,17 +163,16 @@ var app = new Vue({
             	x: ctx.canvas.width,
             	y: ctx.canvas.height
             }
-            //ctx.canvas.width = ctx.canvas.clientWidth;
-            //console.log(ctx.canvas.width);
             
             var fontsize = {
                 default: ctx.canvas.height/10
-                }
+            }
             
             var margins = {
                 bottom: ctx.canvas.height/8,
                 top: ctx.canvas.height/4
             }
+
             var points = binding.value[0]
             var bounds = {
                 min: Math.min(...points),
@@ -186,17 +187,23 @@ var app = new Vue({
 
 
             // GRAPH
-            ctx.beginPath();
-            ctx.moveTo(0, res.y-margins.bottom);
-            
-            for (var i = 0; i < points.length; i++) {
-            	ctx.lineTo(i*(res.x/points.length), scaledPoints[i]);
+            function filledChart(pts, fillStyle) {
+                ctx.beginPath();
+                ctx.moveTo(0, res.y-margins.bottom);
+                
+                for (var i = 0; i < pts.length; i++) {
+                    ctx.lineTo(i*(res.x/pts.length), scaledPoints[i]);
+                }
+                ctx.lineTo(res.x, res.y-margins.bottom);
+                ctx.closePath();
+                ctx.fillStyle = fillStyle;
+                ctx.fill();
             }
-            ctx.lineTo(res.x, res.y-margins.bottom);
-            ctx.closePath();
-            ctx.fillStyle = "#cccccc";
-    
-            ctx.fill();
+
+            var my_gradient=ctx.createLinearGradient(0,0,0,170);
+            my_gradient.addColorStop(0,"#aaaacc");
+            my_gradient.addColorStop(1,"#bbbbdd");
+            filledChart(points, my_gradient)
 
             // data point labels
             // ctx.rotate(-Math.PI/2);
@@ -209,7 +216,7 @@ var app = new Vue({
                     
                     ctx.save();
                     ctx.translate(x, y);
-                    ctx.rotate(-Math.PI/6);
+                    ctx.rotate(-Math.PI/4);
                     // ctx.textAlign = "center";
                     // ctx.fillText(points[i], x, y);
                     ctx.fillText(points[i], 0, 0);
@@ -226,7 +233,7 @@ var app = new Vue({
                 
                 if (nth == reducer || i==0) {
                     nth = 0
-                    ctx.fillStyle = "#bbbbbb";
+                    ctx.fillStyle = "#ffffff";
                     // ctx.fillRect(i*(res.x/points.length), res.y, 1,10);
                     ctx.fillRect(i*(res.x/points.length), res.y-margins.bottom, 1,margins.bottom+-(res.y-scaledPoints[i]));
                     
@@ -374,14 +381,13 @@ var app = new Vue({
     },
 
     watch: {
-        // whenever question changes, this function will run
         server: function () {
             // console.log('server changed');
             if (isURL(this.server)) {
                 initApp();
                 if (typeof(Storage) !== "undefined") {
                     localStorage.server = this.server;
-                    console.log('written server to local strg')
+                    console.log('Written server to local storage')
                 }
             }
         }
@@ -389,10 +395,6 @@ var app = new Vue({
 
     mounted() {
         console.log('mount done');
-
-
-
-
     },
 
     methods: {
@@ -407,7 +409,7 @@ var app = new Vue({
         },
 
         isOffline: function(timeseries) {
-            const threshold = 1.5;
+            const threshold = 1.8;
             var timeSinceLastUpdate = new Date().getTime() / 1000 - timeseries[0];
             if (detectInterval(timeseries) * threshold < timeSinceLastUpdate) {
                 return true;
@@ -474,7 +476,7 @@ function get_all_stats() {
         
     };
 
-    xhr.open('GET', app.server, true);
+    xhr.open('GET', app.server + ENDPOINT, true);
     
     try {
         xhr.send();
