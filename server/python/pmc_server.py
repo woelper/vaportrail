@@ -100,7 +100,7 @@ class Value(object):
 class DataBase():
     def __init__(self):
         self.data = {}
-        self.stats = {'host': Statistics, 'updates': 0, 'values': 0}
+        self.stats = {'host': 'Statistics', 'updates': 0, 'values': 0}
         self.location = 'dump.db'
 
     def save(self):
