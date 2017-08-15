@@ -63,29 +63,10 @@ class Value(object):
         self.values = []
         self.timestamps = []
         self.max_values = 45
-        self.annotation = 'undetected'
-        self.uniform = False
         if keyname is not None:
             self.keyname = keyname
         if val is not None:
             self.add(val)
-
-    def annotate(self, value):
-
-        # === geo coordinate pair
-        if isinstance(value, str):
-            # ISO 6709 '+010000.0+0010000.0/'
-            if value.startswith('-') or value.startswith('+') or value.endswith('/'):
-                return 'location'
-            if value.startswith('-') or value.startswith('+'):
-                return 'location'
-
-            if self.keyname == 'location' or self.keyname == 'position':
-                return 'location'
-
-
-        # if it's not some self-defined type, return the native type
-        return type(value).__name__
 
     def add(self, value):
         now = time.time()
@@ -99,10 +80,9 @@ class Value(object):
             self.timestamps.pop()
 
         # Are all values coherent? maybe leave this to a client to judge?
-        if is_list_of_pure_type(self.values, int) or is_list_of_pure_type(self.values, float):
-            self.uniform = True
+        #if is_list_of_pure_type(self.values, int) or is_list_of_pure_type(self.values, float):
+        #    self.uniform = True
 
-        self.annotation = self.annotate(value)
 
     def __repr__(self):
         return 'VALUE OBJECT ' + str(self.values)
@@ -120,7 +100,7 @@ class Value(object):
 class DataBase():
     def __init__(self):
         self.data = {}
-        self.stats = {'updates': 0, 'values': 0}
+        self.stats = {'host': Statistics, 'updates': 0, 'values': 0}
         self.location = 'dump.db'
 
     def save(self):
@@ -157,7 +137,7 @@ class DataBase():
                 continue
 
             serialized_data[key] = {k: v.serialize() for k, v in value.iteritems()}
-        #serialized_data['stats'] = self.stats
+        serialized_data['stats'] = self.stats
         return serialized_data
 
 
