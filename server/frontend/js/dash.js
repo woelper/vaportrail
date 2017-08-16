@@ -1,10 +1,29 @@
 const ENDPOINT = '/dump';
 
+
+
 Array.prototype.scaleBetween = function(scaledMin, scaledMax) {
-  var max = Math.max.apply(Math, this);
-  var min = Math.min.apply(Math, this);
-  return this.map(num => (scaledMax-scaledMin)*(num-min)/(max-min)+scaledMin);
+    var max = Math.max.apply(Math, this);
+    var min = Math.min.apply(Math, this);
+    // console.log('MAP', this.map(num => (scaledMax-scaledMin)*(num-min)/(max-min)+scaledMin));
+    return this.map(num => (scaledMax-scaledMin)*(num-min)/(max-min+0.0000001)+scaledMin);
 }
+
+Array.prototype.average = function() {
+    var combined = 0;
+
+    for (i in this) {
+        if (this.hasOwnProperty(i)) {
+            combined += this[Number(i)];
+        }
+    }
+    return this.map(element => combined/this.length);
+}
+
+Array.prototype.toFloat = function() {
+    return this.map(num => parseFloat(num));
+}
+
 
 // Date.prototype.getUnixTime = function() { return this.getTime()/1000|0 };
 function strToLatlong(inputString) {
@@ -92,20 +111,10 @@ function niceSecondDelta(seconds) {
     return displaystring;
 }
 
-function fit(s, low1, high1, low2, high2)
-{
+function fit(s, low1, high1, low2, high2) {
     return low2 + (s-low1)*(high2-low2)/(high1-low1);
 }
 
-function valueToPoint (value, index, total, res, bounds) {
-  var tx    = index * (res.x/(total));
-  var ty    = res.y - (value/(bounds[1]-bounds[0])) * res.y;
-//   console.log(tx, ty);  
-  return {
-    x: tx,
-    y: ty
-  }
-}
 
 
 function stringToType(s, hint) {
@@ -147,11 +156,14 @@ var app = new Vue({
         graphTrend: false
     },
     directives: {
-            
+
+
         graph: function(canvasElement, binding) {
             // Get canvas context
             var ctx = canvasElement.getContext("2d");
             //console.log(ctx);
+
+            
             if (ctx.canvas.clientWidth != 0) {
                 ctx.canvas.width = ctx.canvas.clientWidth*1.6;
             }
@@ -169,78 +181,138 @@ var app = new Vue({
             
             var margins = {
                 bottom: ctx.canvas.height/8,
-                top: ctx.canvas.height/4
+                top: ctx.canvas.height/4,
+                left: ctx.canvas.width/64,
+                right: ctx.canvas.width/64,
             }
 
-            var points = binding.value[0]
-            var bounds = {
-                min: Math.min(...points),
-                max: Math.max(...points)
-            };  
+            var points = binding.value[0].toFloat()
+
               
-            var scaledPoints = points.scaleBetween(res.y-margins.bottom-margins.top/2, margins.top)
+
             var labels = binding.value[1];
-            
-            // Clear the canvas
-            //ctx.clearRect(0,0,res.x,res.y);
 
 
             // GRAPH
-            function filledChart(pts, fillStyle) {
+            function drawChart(pts, lbls, fillStyle, do_fill) {
+
+
+                //pre-calculate scaled points for display
+                var pointY = pts.scaleBetween(res.y-margins.bottom-margins.top/2, margins.top)
+                var pointX = [...Array(pts.length).keys()].scaleBetween(margins.left, res.x-margins.right);
+
+                function labelExtremes(originalPoints, transformedPoints, context, color) {
+                    // Draw value labels on the curve on minima/maxima
+                    var lastPoint = undefined;
+
+                    var bounds = {
+                        min: Math.min(...originalPoints),
+                        max: Math.max(...originalPoints)
+                    };  
+
+                    for (op in originalPoints) {
+                        // is lowest or highest value?
+                        if (originalPoints[op] == bounds.max || originalPoints[op] == bounds.min) {
+                            if (originalPoints[op] != lastPoint) {
+                                context.fillStyle = color;
+                                context.font = fontsize.default + "px Arial";
+                                context.save();
+                                context.translate(pointX[op], transformedPoints[op]*0.95);
+                                context.rotate(-Math.PI/4);
+                                context.fillText(Math.round(originalPoints[op]*10)/10, 0, 0);
+                                context.restore();
+                                lastPoint = originalPoints[op];
+                            }
+                        }
+                    }
+                }
+
                 ctx.beginPath();
-                ctx.moveTo(0, res.y-margins.bottom);
+                if (do_fill) {
+                    ctx.moveTo(margins.left, res.y-margins.bottom);
+                } else {
+                    ctx.moveTo(margins.left, pointY[0]);
+                }
+
+                for (var op = 0; op < pts.length; op++) {
+                    ctx.lineTo(pointX[op], pointY[op]);
+                }
                 
-                for (var i = 0; i < pts.length; i++) {
-                    ctx.lineTo(i*(res.x/pts.length), scaledPoints[i]);
+                if (do_fill) {
+                    ctx.lineTo(res.x-margins.right, res.y-margins.bottom);
+                    ctx.closePath();
+                    ctx.fillStyle = fillStyle;
+                    ctx.fill();
+                } else {
+                    ctx.stroke();
                 }
-                ctx.lineTo(res.x, res.y-margins.bottom);
-                ctx.closePath();
-                ctx.fillStyle = fillStyle;
-                ctx.fill();
-            }
 
-            var my_gradient=ctx.createLinearGradient(0,0,0,170);
-            my_gradient.addColorStop(0,"#aaaacc");
-            my_gradient.addColorStop(1,"#bbbbdd");
-            filledChart(points, my_gradient)
+                // overlay average
+                /* The reason we do not reuse the graph and do it outside is the fact that
+                we auto-scale the graph each frame based on it's values.*/
+                if (app.graphAverage) {
 
-            // data point labels
-            // ctx.rotate(-Math.PI/2);
-            for (var i = 0; i < points.length; i++) {
-                if (points[i] == bounds.max || points[i] == bounds.min) {
-                    ctx.fillStyle = "#222222";
-                    ctx.font = fontsize.default + "px Arial";
-                    var x = i * (res.x / points.length)
-                    var y = scaledPoints[i]
-                    
-                    ctx.save();
-                    ctx.translate(x, y);
-                    ctx.rotate(-Math.PI/4);
-                    // ctx.textAlign = "center";
-                    // ctx.fillText(points[i], x, y);
-                    ctx.fillText(points[i], 0, 0);
-                    ctx.restore();
+                    var avgColor = '#222255'
+                    var avgPointY = pointY.average();
+                    var avgValue = pts.average();
+                    ctx.beginPath();
+                    ctx.moveTo(margins.left, avgPointY[0]);
+                    for (var op = 0; op < pts.length; op++) {
+                        ctx.lineTo(pointX[op], avgPointY[op]);
+                    }
+                    ctx.strokeStyle = avgColor;
+                    ctx.stroke();
+                    labelExtremes(avgValue, avgPointY, ctx, avgColor    );
                 }
-            }
 
+                // if (app.graphTrend) {
+                //     var trendPointY = regression(pointX, pointY)[0];
+                //     console.log(trendPointY);
 
-            var nth = 0;
+                //     ctx.beginPath();
+                //     ctx.moveTo(margins.left, trendPointY[0]);
+                //     for (var i = 0; i < pts.length; i++) {
+                //         ctx.lineTo(pointX[i], trendPointY[i]);
+                //     }
+                //     ctx.strokeStyle="#FF0000";
+                //     ctx.stroke();
+                //     labelExtremes(trendPointY, ctx, "#FF0000");
+                // }
 
-            var reducer = Math.round(fit(points.length, 0, 80, 1, 10));
-            //console.log(reducer);
-            for (var i = 0; i < points.length; i++) {
                 
-                if (nth == reducer || i==0) {
-                    nth = 0
-                    ctx.fillStyle = "#ffffff";
-                    // ctx.fillRect(i*(res.x/points.length), res.y, 1,10);
-                    ctx.fillRect(i*(res.x/points.length), res.y-margins.bottom, 1,margins.bottom+-(res.y-scaledPoints[i]));
+
+                labelExtremes(pts, pointY, ctx, "#222222");
+
+                var nth = 0;
+
+                var reducer = Math.round(fit(pts.length, 0, 80, 1, 10));
+                //console.log(reducer);
+                for (var op = 0; op < pts.length; op++) {
                     
-                    ctx.fillStyle = "#888888";
-                    ctx.fillText(labels[i], i*(res.x/points.length), res.y);
+                    if (nth == reducer || op==0) {
+                        nth = 0
+
+                        //vertical bars
+                        ctx.fillStyle = "#cccccc";
+                        ctx.fillRect(pointX[op], res.y-margins.bottom, 1, margins.bottom+-(res.y-pointY[op]));
+                        
+                        //label
+                        ctx.fillStyle = "#888888";
+                        ctx.fillText(lbls[op], pointX[op], res.y);
+                    }
+                    nth ++;
                 }
-                nth ++;
+
+
             }
+
+
+            var my_gradient = ctx.createLinearGradient(0,0,0,170);
+            my_gradient.addColorStop(0,"rgba(63,81,181,0.2)");
+            my_gradient.addColorStop(1,"rgba(63,81,181,0.4)");
+
+            drawChart(points, labels, my_gradient, true);
+
 
         },
     
