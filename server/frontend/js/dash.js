@@ -2,26 +2,42 @@ const ENDPOINT = '/dump';
 
 
 
-Array.prototype.scaleBetween = function(scaledMin, scaledMax) {
+Array.prototype.scaleBetween = function (scaledMin, scaledMax) {
     var max = Math.max.apply(Math, this);
     var min = Math.min.apply(Math, this);
     // console.log('MAP', this.map(num => (scaledMax-scaledMin)*(num-min)/(max-min)+scaledMin));
-    return this.map(num => (scaledMax-scaledMin)*(num-min)/(max-min+0.0000001)+scaledMin);
+    
+    
+    // return this.map(num => (scaledMax - scaledMin) * (num - min) / (max - min + 0.0000001) + scaledMin);
+    return this.map(function (num) {
+        return ((scaledMax - scaledMin) * (num - min) / (max - min + 0.0000001) + scaledMin);
+    })
 }
 
 Array.prototype.average = function() {
     var combined = 0;
 
-    for (i in this) {
+    var length = 0;
+    for (var i in this) {
         if (this.hasOwnProperty(i)) {
-            combined += this[Number(i)];
+            combined += this[i];
+            length++;
         }
     }
-    return this.map(element => combined/this.length);
+
+   
+    return this.map(function () {
+        return combined / length;
+    });
 }
 
-Array.prototype.toFloat = function() {
-    return this.map(num => parseFloat(num));
+Array.prototype.toFloat = function () {
+    
+    // return this.map(num => parseFloat(num));
+
+    return this.map(function (num) {
+        return parseFloat(num);
+    })
 }
 
 
@@ -141,6 +157,11 @@ function stringToType(s, hint) {
 var app = new Vue({
     el: '#vue',
     data: {
+        config: {
+            graphAverage: false,
+            graphTrend: false,
+            server: ''
+        },
         ready: true,
         hosts: [],
         currentHost: {},
@@ -194,7 +215,7 @@ var app = new Vue({
 
 
             // GRAPH
-            function drawChart(pts, lbls, fillStyle, do_fill) {
+            function drawChart(pts, lbls, color, do_fill) {
 
 
                 //pre-calculate scaled points for display
@@ -203,25 +224,30 @@ var app = new Vue({
 
                 function labelExtremes(originalPoints, transformedPoints, context, color) {
                     // Draw value labels on the curve on minima/maxima
-                    var lastPoint = undefined;
+                    var lastPoint;
 
                     var bounds = {
                         min: Math.min(...originalPoints),
                         max: Math.max(...originalPoints)
                     };  
 
-                    for (op in originalPoints) {
+                    for (var op in originalPoints) {
                         // is lowest or highest value?
-                        if (originalPoints[op] == bounds.max || originalPoints[op] == bounds.min) {
-                            if (originalPoints[op] != lastPoint) {
-                                context.fillStyle = color;
-                                context.font = fontsize.default + "px Arial";
-                                context.save();
-                                context.translate(pointX[op], transformedPoints[op]*0.95);
-                                context.rotate(-Math.PI/4);
-                                context.fillText(Math.round(originalPoints[op]*10)/10, 0, 0);
-                                context.restore();
-                                lastPoint = originalPoints[op];
+                        if (originalPoints.hasOwnProperty(op)) {
+                            // console.log(op);
+                        
+//
+                            if (op == 0 || (originalPoints[op] == bounds.max || originalPoints[op] == bounds.min)) {
+                                if (originalPoints[op] != lastPoint) {
+                                    context.fillStyle = color;
+                                    context.font = fontsize.default + "px Arial";
+                                    context.save();
+                                    context.translate(pointX[op], transformedPoints[op] * 0.95);
+                                    context.rotate(-Math.PI / 4);
+                                    context.fillText(Math.round(originalPoints[op] * 10) / 10, 0, 0);
+                                    context.restore();
+                                    lastPoint = originalPoints[op];
+                                }
                             }
                         }
                     }
@@ -241,7 +267,7 @@ var app = new Vue({
                 if (do_fill) {
                     ctx.lineTo(res.x-margins.right, res.y-margins.bottom);
                     ctx.closePath();
-                    ctx.fillStyle = fillStyle;
+                    ctx.fillStyle = color;
                     ctx.fill();
                 } else {
                     ctx.stroke();
@@ -250,8 +276,8 @@ var app = new Vue({
                 // overlay average
                 /* The reason we do not reuse the graph and do it outside is the fact that
                 we auto-scale the graph each frame based on it's values.*/
-                if (app.graphAverage) {
-
+                if (app.config.graphAverage) {
+                    console.log('draw avg');
                     var avgColor = '#222255'
                     var avgPointY = pointY.average();
                     var avgValue = pts.average();
@@ -303,21 +329,13 @@ var app = new Vue({
                     nth ++;
                 }
 
-
             }
 
 
-            var my_gradient = ctx.createLinearGradient(0,0,0,170);
-            my_gradient.addColorStop(0,"rgba(63,81,181,0.2)");
-            my_gradient.addColorStop(1,"rgba(63,81,181,0.4)");
-
-            drawChart(points, labels, my_gradient, true);
-
+            drawChart(points, labels, "rgba(63,81,181,0.5)", true);
 
         },
     
-
-
 
 
         location: function (canvasElement, binding) {
@@ -326,75 +344,7 @@ var app = new Vue({
             var lonlat = new OpenLayers.LonLat(pos.long, pos.lat).transform('EPSG:4326', 'EPSG:3857');
             var layer = new OpenLayers.Layer.OSM();
 
-            // console.log(canvasElement.id)
-
-            //Map already created?
-            // if (canvasElement.className == 'olMap') {
-               
-            //     //get map
-            //     // var currentMap = undefined;
-
-            //     // for (m in app.maps) {
-            //     //     // console.log(app.maps[m]);
-            //     //     if (app.maps[m].identifier == canvasElement.id) {
-            //     //         currentMap = app.maps[m]
-            //     //         // console.log('found', currentMap);
-            //     //     }
-            //     // }
-
-            //     //did data change?
-            //     //is there history?
-            //     // if (binding.value.length > 1) {
-            //     //     console.log('there is historic map data');
-            //     //     if (binding.value[0] != binding.value[1]){
-            //     //         //value changed
-            //     //         console.log('data changed');
-            //     //         canvasElement.innerHTML = '';
-            //     //         var map = new OpenLayers.Map(canvasElement.id, {
-            //     //             projection: 'EPSG:3857',
-            //     //             layers: [
-            //     //                 layer
-            //     //             ],
-            //     //             // center: new OpenLayers.LonLat(pos.long, pos.lat).transform('EPSG:4326', 'EPSG:3857'),
-            //     //             center: lonlat,
-            //     //             zoom: 16
-            //     //         });
-            //     //     }
-            //     // }
-
-            //     // if ( currentMap != undefined ) {
-            //     // }
-
-            //     return
-            // }
-
-
-
-            // clear
-            
-
-
-            // var map = new OpenLayers.Map(canvasElement.id, {
-            //     projection: 'EPSG:3857',
-            //     layers: [
-            //         new OpenLayers.Layer.OSM()
-            //     ],
-            //     center: lonlat,
-            // });
-
-            // map.zoom = 16;
-
-
-            // var map = new OpenLayers.Map(canvasElement.id, {
-            //     projection: 'EPSG:3857',
-            //     layers: [
-            //         layer
-            //     ],
-            //     // center: new OpenLayers.LonLat(pos.long, pos.lat).transform('EPSG:4326', 'EPSG:3857'),
-            //     center: lonlat,
-            //     zoom: 16
-            // });
-
+      
 
             if ( app.currentMap == undefined) {
                 canvasElement.innerHTML = '';
@@ -407,40 +357,17 @@ var app = new Vue({
                     center: lonlat,
                     zoom: 16
                 });
-                // app.currentMap.render(canvasElement.id);
+
             } else {
                 app.currentMap.center = lonlat;
-                // app.currentMap.render(canvasElement.id);
-                console.log('update');
-                // app.currentMap.zoom = Math.random()*10;
+
             }
-
-            
             app.currentMap.render(canvasElement.id);
-
-            // // map.addControl(new OpenLayers.Control.LayerSwitcher());
-            // map.identifier = canvasElement.id;
-            // var mapPresent = false;
-
-            // for (m in app.maps) {
-            //     if (app.maps[m].identifier == map.identifier) {
-            //         mapPresent = true
-            //     }
-            // }
-
-
-            // // console.log(app.maps);
-            // if (! mapPresent) {
-            //     app.maps.push(map);
-            //     console.log('added map');
-            // };
-
 
       
         },
 
         misc: function (canvasElement, binding) {
-
             canvasElement.innerHTML = binding.value[0][0] + " (" + binding.value[1][0] + " ago)";
         }
 
@@ -456,11 +383,21 @@ var app = new Vue({
             // console.log('server changed');
             if (isURL(this.server)) {
                 initApp();
-                if (typeof(Storage) !== "undefined") {
+                if (typeof (Storage) !== "undefined") {
                     localStorage.server = this.server;
                     console.log('Written server to local storage')
                 }
             }
+        },
+        config: {
+            handler() {
+                if (typeof (Storage) !== "undefined") {
+                    localStorage.config = this.config;
+                    console.log('Written config')
+                }   
+            },
+            deep: true
+
         }
     },
 
@@ -587,6 +524,11 @@ function main() {
         console.log('could not restore server')
     }
     
+    if (localStorage.config !== "undefined") {
+        // app.config = localStorage.config;
+        console.log(localStorage.config);
+    }
+
     initApp();
     // console.log(app.currentHostName);
     // console.log(app.currentHost);
