@@ -1,1 +1,2 @@
-python pmc_server.py 4000
+PORT=4000
+python server.py $PORT
