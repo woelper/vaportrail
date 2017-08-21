@@ -2,7 +2,7 @@
 Plugin file.
 They just need a run method and an INTERVAL int interval.
 """
-from base_plugin import *
+from _base_plugin import *
 
 # Import what you like here
 import time
@@ -10,7 +10,7 @@ import math
 
 
 # Those come in from the base_plugin as default. You can override them here
-INTERVAL = 1.0
+INTERVAL = 0.1
 CATEGORY = None
 
 

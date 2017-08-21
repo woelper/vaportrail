@@ -10,7 +10,7 @@
 Plugin file.
 They just need a run method and an INTERVAL int interval.
 """
-from base_plugin import *
+from _base_plugin import *
 
 # Import what you like here
 import time

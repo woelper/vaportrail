@@ -1,4 +1,4 @@
-from base_plugin import *
+from _base_plugin import *
 
 import subprocess
 import platform

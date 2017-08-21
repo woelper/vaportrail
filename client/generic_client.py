@@ -21,6 +21,14 @@ class Client():
         self.post_url = server + '/add'
         self.plugins = plugins
         self.threads = []
+        self.shutdown = False
+
+    def __repr__(self):
+        output = '\n{} class\n'.format(self.__class__.__name__)
+        for k, v in self.__dict__.iteritems():
+            output += '\t{}: {}\n'.format(k, v)
+        return output
+
 
     def run_plugin_in_background(self, plugin):
         """
@@ -54,7 +62,7 @@ class Client():
 
             try:
                 response = urllib2.urlopen(request)
-                msg.append(response.read())
+                #ccmsg.append(response.read())
             except urllib2.URLError:
                 msg += ['Could not connect to', self.post_url]
 
@@ -73,13 +81,15 @@ class Client():
         Fire up each plugin in a thread
         """
         for p in self.plugins:
+            assert p is not None
+
             print '[[[ Launching Plugin: {} ]]]'.format(p.__name__)
             t = threading.Thread(target=self.run_plugin_in_background, args=(p,))
             t.daemon = True
             self.threads.append(t)
             t.start()
 
-        while True:
+        while not self.shutdown:
             # just stay active
             time.sleep(20)
             print self.threads
@@ -102,7 +112,8 @@ if __name__ == '__main__':
 
     active_plugins = []
     for modname, mod in sys.modules.iteritems():
-        if modname.startswith(plugins.__name__) and not 'base_' in modname:
+        print modname
+        if modname.startswith(plugins.__name__) and not modname.startswith(plugins.__name__ + '._'):
             plugin_directory = dir(mod)
             if 'run' in plugin_directory and 'INTERVAL' in plugin_directory:
                 active_plugins.append(mod)
