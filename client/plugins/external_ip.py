@@ -25,3 +25,6 @@ def get_ip():
 
 def run():
     return {'IP Address': get_ip()}
+
+if __name__ == '__main__':
+    print run()

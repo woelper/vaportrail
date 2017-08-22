@@ -64,7 +64,7 @@ class Client():
             except urllib2.URLError:
                 msg += ['Could not connect to', self.post_url]
 
-            msg += ['in', time.time() - timer]
+            msg += ['in', round(1/(time.time() - timer)*10)/10, 'Hz']
             msg = [str(s) for s in msg]
             print '{}'.format(' '.join(msg))
         
@@ -110,7 +110,6 @@ if __name__ == '__main__':
 
     active_plugins = []
     for modname, mod in sys.modules.iteritems():
-        print modname
         if modname.startswith(plugins.__name__ + '.') and not modname.startswith(plugins.__name__ + '._'):
             plugin_directory = dir(mod)
             if 'run' in plugin_directory and 'INTERVAL' in plugin_directory:

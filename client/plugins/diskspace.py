@@ -33,3 +33,6 @@ def get_free_space():
 
 def run():
     return {'Free space on root': get_free_space()}
+
+if __name__ == '__main__':
+    print run()

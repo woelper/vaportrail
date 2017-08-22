@@ -21,3 +21,6 @@ def run():
         return {"Uptime": uptime}
     except OSError:
         return {}
+    
+if __name__ == '__main__':
+    print run()

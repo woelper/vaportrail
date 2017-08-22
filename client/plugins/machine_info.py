@@ -18,3 +18,6 @@ def run():
         'CPU Type':  '{} x {}'.format(platform.processor(), multiprocessing.cpu_count()),
 
         }
+
+if __name__ == '__main__':
+    print run()
