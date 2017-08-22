@@ -17,11 +17,9 @@ class Client():
             self.custom_hostname = custom_hostname
         if not server.startswith('http://'):
             server = 'http://' + server
-        self.server = server
         self.post_url = server + '/add'
         self.plugins = plugins
         self.threads = []
-        self.shutdown = False
 
     def __repr__(self):
         output = '\n{} class\n'.format(self.__class__.__name__)
@@ -89,10 +87,10 @@ class Client():
             self.threads.append(t)
             t.start()
 
-        while not self.shutdown:
-            # just stay active
-            time.sleep(20)
-            print self.threads
+        # while not self.shutdown:
+        #     # just stay active
+        #     time.sleep(20)
+        #     print self.threads
 
 
 
@@ -113,7 +111,7 @@ if __name__ == '__main__':
     active_plugins = []
     for modname, mod in sys.modules.iteritems():
         print modname
-        if modname.startswith(plugins.__name__) and not modname.startswith(plugins.__name__ + '._'):
+        if modname.startswith(plugins.__name__ + '.') and not modname.startswith(plugins.__name__ + '._'):
             plugin_directory = dir(mod)
             if 'run' in plugin_directory and 'INTERVAL' in plugin_directory:
                 active_plugins.append(mod)
@@ -122,3 +120,8 @@ if __name__ == '__main__':
                     print mod, 'invalid'
     c = Client(args.server, active_plugins, custom_hostname=args.hostname)
     c.dispatch_plugins()
+
+    while True:
+    # just stay active
+        time.sleep(20)
+        print c.threads

@@ -1,6 +1,6 @@
 """
 Plugin file.
-They just need a run method and an INTERVAL int interval.
+They just need a run method and an INTERVAL float interval.
 """
 from _base_plugin import *
 
@@ -10,7 +10,7 @@ import math
 
 
 # Those come in from the base_plugin as default. You can override them here
-INTERVAL = 0.1
+INTERVAL = 0.05
 CATEGORY = None
 
 
