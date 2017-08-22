@@ -1,6 +1,8 @@
 # Vapor Trail
 
-Got some live data you want visualized? You like uncomplicated stuff? Maybe this is for you. It's like Twitter(tm) for logging. 
+![](screenshots/shot1.png)
+
+Got some live data you want visualized? You like uncomplicated stuff? Maybe this is for you.
 
 Use cases:
  * Have some computers you want to monitor? Have a live view into their stats.
