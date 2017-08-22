@@ -1,5 +1,5 @@
 const ENDPOINT = '/dump';
-
+const SERVER_PORT = 4000;
 
 
 Array.prototype.scaleBetween = function (scaledMin, scaledMax) {
@@ -169,7 +169,7 @@ var app = new Vue({
         completeDB: {},
         currentDB: {},
         updateid: 1,
-        server: '',
+        server: "http://" + window.location.hostname + ":" + String(SERVER_PORT),
         options_visible: false,
         disconnected: true,
         currentMap: undefined,
@@ -525,7 +525,7 @@ function main() {
     }
     
     if (localStorage.config !== "undefined") {
-        // app.config = localStorage.config;
+   // app.config = localStorage.config;
         console.log(localStorage.config);
     }
 

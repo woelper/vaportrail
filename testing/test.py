@@ -30,10 +30,7 @@ class Test(object):
         self.clients = []
 
         signal.signal(signal.SIGINT, self.signal_handler)
-        self.startup()
-        self.tests()
-        time.sleep(30)
-        self.teardown()
+
 
     def signal_handler(self, signal, frame):
             self.teardown()
@@ -73,11 +70,9 @@ class Test(object):
         active_plugins = []
         for modname, mod in sys.modules.iteritems():
 
-            if modname.startswith('plugins') and  mod is not None:
+            if modname.startswith('plugins.') and  mod is not None:
                 active_plugins.append(mod)
 
-        for a in active_plugins:
-            print 'active plug', a
 
         for n in ['Mars', 'Phobos', 'Deimos', 'Keppler', 'Objekt 42']:
             c = Client('localhost:4000', active_plugins, custom_hostname=n)
@@ -89,4 +84,9 @@ class Test(object):
         #     c.dispatch_plugins()
 
 
-t = Test()
+if __name__ == '__main__':
+    t = Test()
+    t.startup()
+    t.tests()
+    time.sleep(30)
+    t.teardown()
