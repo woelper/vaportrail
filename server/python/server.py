@@ -99,10 +99,8 @@ class DataBase():
     def __init__(self):
         self.data = {}
         self.stats = {
-            'updates': {
-                'values' : [0],
-                'timestamps': [0]
-            }
+            'inputs': 0,
+            'outputs': 0
         }
         self.location = 'dump.db'
 
@@ -138,8 +136,16 @@ class DataBase():
             if keyfilter is not None and key != keyfilter:
                 continue
 
+            self.stats['outputs'] += 1
+            stats = {
+                'host': 'Server statistics',
+                'Client inputs': self.stats['inputs'],
+                'Server requests': self.stats['outputs']
+            }
+            self.add_or_update(stats)
             serialized_data[key] = {k: v.serialize() for k, v in value.iteritems()}
-        serialized_data['stats'] = self.stats
+        
+        #serialized_data['Server stats'] = {}
         return serialized_data
 
 
@@ -163,7 +169,7 @@ class DataBase():
 
         for key, value in value_dict.iteritems():
             if key in self.data[host]:
-                self.stats['updates']['values'][0] += 1
+                self.stats['inputs'] += 1
                 self.data[host][key].add(value)
             else:
                 self.data[host][key] = Value(value)

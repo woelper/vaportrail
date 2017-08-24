@@ -54,6 +54,7 @@
                     <div class="optionitem">Refresh delay</div>
                     <div class="optionitem" id="interval">3s</div>
                     <br>
+                    
                     <div class="optionitem">Plot Average
                         <input type="checkbox" id="checkAvg" v-model="config.graphAverage">
                         <label for="checkAvg">{{ config.graphAverage }}</label>
@@ -68,7 +69,8 @@
                     <input id="slider-interval" class="mdl-slider mdl-js-slider" type="range" min="1" max="20" value="10" tabindex="0" >
                 </p>
                 <div class="optiongroup">
-                    <input v-model="server" placeholder="Stat server">
+                    Server URL
+                    <input v-model="config.server" placeholder="Stat server">
                     <p>Connected: {{ !disconnected }}</p>
                 </div>
             </div>
@@ -94,7 +96,7 @@
 
 
 <!-- Put this in an extra area -->
-            <template v-if="server == ''">
+            <template v-if="config.server == ''">
                 <span class="mdl-chip" style="margin: 50px;">
                     <span class="mdl-chip__text">Server not set. Please see options to configure a server.</span>
                 </span>

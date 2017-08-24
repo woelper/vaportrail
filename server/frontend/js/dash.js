@@ -160,7 +160,7 @@ var app = new Vue({
         config: {
             graphAverage: false,
             graphTrend: false,
-            server: ''
+            server: "http://" + window.location.hostname + ":" + String(SERVER_PORT)
         },
         ready: true,
         hosts: [],
@@ -169,12 +169,10 @@ var app = new Vue({
         completeDB: {},
         currentDB: {},
         updateid: 1,
-        server: "http://" + window.location.hostname + ":" + String(SERVER_PORT),
         options_visible: false,
         disconnected: true,
         currentMap: undefined,
-        graphAverage: false,
-        graphTrend: false
+        // server: "dsdsdsd"
     },
     directives: {
 
@@ -234,9 +232,7 @@ var app = new Vue({
                     for (var op in originalPoints) {
                         // is lowest or highest value?
                         if (originalPoints.hasOwnProperty(op)) {
-                            // console.log(op);
-                        
-//
+
                             if (op == 0 || (originalPoints[op] == bounds.max || originalPoints[op] == bounds.min)) {
                                 if (originalPoints[op] != lastPoint) {
                                     context.fillStyle = color;
@@ -277,7 +273,6 @@ var app = new Vue({
                 /* The reason we do not reuse the graph and do it outside is the fact that
                 we auto-scale the graph each frame based on it's values.*/
                 if (app.config.graphAverage) {
-                    console.log('draw avg');
                     var avgColor = '#222255'
                     var avgPointY = pointY.average();
                     var avgValue = pts.average();
@@ -379,21 +374,12 @@ var app = new Vue({
     },
 
     watch: {
-        server: function () {
-            // console.log('server changed');
-            if (isURL(this.server)) {
-                initApp();
-                if (typeof (Storage) !== "undefined") {
-                    localStorage.server = this.server;
-                    console.log('Written server to local storage')
-                }
-            }
-        },
+
         config: {
             handler() {
                 if (typeof (Storage) !== "undefined") {
-                    localStorage.config = this.config;
-                    console.log('Written config')
+                    localStorage.config = JSON.stringify(this.config);
+                    console.log('Written config', this.config);
                 }   
             },
             deep: true
@@ -402,7 +388,21 @@ var app = new Vue({
     },
 
     mounted() {
-        console.log('mount done');
+        console.log('Mount done');
+        var vueInstance = this;
+
+        var savedConfig = localStorage.config;
+
+        if (savedConfig == "undefined" || savedConfig == undefined) {
+            console.log('Could not restore config - is undefined');
+        } else {
+            console.log('Restored config');
+            console.log(savedConfig);
+            vueInstance.config = JSON.parse(savedConfig);
+        }
+
+        get_all_stats(vueInstance);
+        setInterval(function () { get_all_stats(vueInstance)}, 350);
     },
 
     methods: {
@@ -433,31 +433,26 @@ var app = new Vue({
             }
             return newTime;
         },
-
-
   }
 
 });
 
 
+function get_all_stats(instance) {
 
 
+    if (instance == undefined) {return};
 
-
-
-
-function get_all_stats() {
-
-    if (!isURL(app.server)) {
+    if (!isURL(instance.config.server) || instance.config.server == undefined) {
+        console.log(instance.config.server, 'is not a valid URL')
         return;
     }
 
     var xhr = new XMLHttpRequest();
 
     xhr.onprogress = function () {
-        // console.log('LOADING', xhr.status);
         if (xhr.status != '200') {
-            app.disconnected = true;
+            instance.disconnected = true;
         }
     }
 
@@ -467,33 +462,32 @@ function get_all_stats() {
         var data = {};
         try {
             data = JSON.parse(xhr.responseText);
-            app.disconnected = false;
+            instance.disconnected = false;
         } catch(e){
             console.log('could not parse JSON');
-            app.disconnected = true;
+            instance.disconnected = true;
         }
-        app.completeDB = data;
+        instance.completeDB = data;
 
         // first run: set hostname
-        if (app.currentHostName == "") {
-            app.currentHostName = Object.keys(app.completeDB)[0];
+        if (instance.currentHostName == "") {
+            instance.currentHostName = Object.keys(instance.completeDB)[0];
         }
 
         // trigger refresh of currently active host
-        app.currentHost = app.completeDB[app.currentHostName];
+        instance.currentHost = instance.completeDB[instance.currentHostName];
         
     };
 
-    xhr.open('GET', app.server + ENDPOINT, true);
+    xhr.open('GET', instance.config.server + ENDPOINT, true);
     
     try {
         xhr.send();
-        // app.disconnected = false;
+
         
     } catch(e) {
-        console.log('err');
-        app.disconnected = true;
-        
+        console.log('err', e);
+        instance.disconnected = true;
     }
 }
 
@@ -504,58 +498,9 @@ function get_all_stats() {
 //     document.getElementById('interval').innerHTML = Math.round(ms/1000*10)/10 + 's';
 // }
 
-function initApp() {
-    get_all_stats();
-    // app.currentHostName = Object.keys(app.completeDB)[0];
-
-    // trigger refresh of currently active host
-    // app.currentHost = app.completeDB[app.currentHostName];
-    
-
-}
 
 
-function main() {
-    
-    var savedServer = localStorage.server;
-    if (savedServer !== "undefined") {
-        app.server = savedServer;
-    } else {
-        console.log('could not restore server')
-    }
-    
-    if (localStorage.config !== "undefined") {
-   // app.config = localStorage.config;
-        console.log(localStorage.config);
-    }
 
-    initApp();
-    // console.log(app.currentHostName);
-    // console.log(app.currentHost);
 
-    setInterval(function () { get_all_stats()}, 350);
 
-    /*
-    var xhr = new XMLHttpRequest();
-    // xhr.open('GET', 'http://localhost:4000/dump');
-    xhr.open('GET', app.server);
-    xhr.onload = function() {
-        data = JSON.parse(xhr.responseText);
-        app.completeDB = data;
-        // on first launch, pick one of the hosts so that the list is not empty
-        app.currentHostName = Object.keys(app.completeDB)[0];
-        app.currentHost = app.completeDB[app.currentHostName];
 
-        // setInterval(function(){ updateGraphs(STATS[SELECTED_HOST])}, 150);
-        
-        // refresh data every x sec
-        setInterval(function () { get_all_stats()}, 5000);
-        
-        // DATAUPDATEID = setInterval(function(){ fetch_data()}, 3000);
-    };
-    xhr.send();
-
-*/
-}
-
-main();
