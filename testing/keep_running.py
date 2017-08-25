@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import time
 from test import Test
 import signal
