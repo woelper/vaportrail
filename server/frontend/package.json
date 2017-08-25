@@ -1,0 +1,21 @@
+{
+  "name": "vaportrail",
+  "version": "1.0.0",
+  "description": "Frontend for Vapor Trail",
+  "main": "js/frontend.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify js/frontend.js | uglifyjs -c > js/frontend.min.js",
+    "watch": "watchify js/frontend.js -o js/frontend.min.js"
+  },
+  "author": "Johann Woelper",
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^14.4.0",
+    "watchify": "^3.9.0"
+  },
+  "dependencies": {
+    "leaflet": "^1.2.0",
+    "uglify-es": "^3.0.28"
+  }
+}

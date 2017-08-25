@@ -1,6 +1,7 @@
+var L = require('leaflet');
+
 const ENDPOINT = '/dump';
 const SERVER_PORT = 4000;
-
 
 Array.prototype.scaleBetween = function (scaledMin, scaledMax) {
     var max = Math.max.apply(Math, this);
@@ -417,7 +418,7 @@ var app = new Vue({
         },
 
         isOffline: function(timeseries) {
-            const threshold = 1.8;
+            const threshold = 2.5;
             var timeSinceLastUpdate = new Date().getTime() / 1000 - timeseries[0];
             if (detectInterval(timeseries) * threshold < timeSinceLastUpdate) {
                 return true;
