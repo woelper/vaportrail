@@ -57,9 +57,7 @@ def run():
     This function must return a dictionary
     """
 
-    if SSH_HOST is None:
-            print 'SSH_HOST not set. Please configure if you want tunnel support.'
-            return {}
+    assert SSH_HOST is not None, 'SSH_HOST not set. Please configure.'
 
 
     def connect():
