@@ -14,6 +14,18 @@ Array.prototype.scaleBetween = function (scaledMin, scaledMax) {
     })
 }
 
+Number.prototype.niceDisplay = function () {
+    
+    if (this > 1000000) {
+        return Math.round(this/100000)*10 + " M";
+    }
+    
+    if (this > 1000) {
+        return Math.round(this/100)/10 + " K";
+    }
+    return Math.round(this*10)/10;
+}
+
 Array.prototype.average = function() {
     var combined = 0;
 
@@ -152,8 +164,6 @@ function stringToType(s, hint) {
 }
 
 
-
-
 var app = new Vue({
     el: '#vue',
     data: {
@@ -180,8 +190,6 @@ var app = new Vue({
         graph: function(canvasElement, binding) {
             // Get canvas context
             var ctx = canvasElement.getContext("2d");
-            //console.log(ctx);
-
             
             if (ctx.canvas.clientWidth != 0) {
                 ctx.canvas.width = ctx.canvas.clientWidth*1.6;
@@ -206,24 +214,21 @@ var app = new Vue({
             }
 
             var points = binding.value[0].toFloat()
-
-              
-
             var labels = binding.value[1];
-
 
             // GRAPH
             function drawChart(pts, lbls, color, do_fill) {
-
 
                 //pre-calculate scaled points for display
                 var pointY = pts.scaleBetween(res.y-margins.bottom-margins.top/2, margins.top)
                 var pointX = [...Array(pts.length).keys()].scaleBetween(margins.left, res.x-margins.right);
 
-                function labelExtremes(originalPoints, transformedPoints, context, color) {
+                function labelExtremes(originalPoints, transformedPoints, context, color, xOffset, prefix) {
+                    if (xOffset == undefined) {xOffset=0};
+                    if (prefix == undefined) {prefix=""};
+
                     // Draw value labels on the curve on minima/maxima
                     var lastPoint;
-
                     var bounds = {
                         min: Math.min(...originalPoints),
                         max: Math.max(...originalPoints)
@@ -232,15 +237,14 @@ var app = new Vue({
                     for (var op in originalPoints) {
                         // is lowest or highest value?
                         if (originalPoints.hasOwnProperty(op)) {
-
                             if (op == 0 || (originalPoints[op] == bounds.max || originalPoints[op] == bounds.min)) {
                                 if (originalPoints[op] != lastPoint) {
                                     context.fillStyle = color;
                                     context.font = fontsize.default + "px Arial";
                                     context.save();
-                                    context.translate(pointX[op], transformedPoints[op] * 0.95);
-                                    context.rotate(-Math.PI / 4);
-                                    context.fillText(Math.round(originalPoints[op] * 10) / 10, 0, 0);
+                                    context.translate(pointX[op] + xOffset, transformedPoints[op] * 0.95);
+                                    context.rotate(-Math.PI / 8);
+                                    context.fillText(prefix + " " + originalPoints[op].niceDisplay(), 0, 0);
                                     context.restore();
                                     lastPoint = originalPoints[op];
                                 }
@@ -273,7 +277,7 @@ var app = new Vue({
                 /* The reason we do not reuse the graph and do it outside is the fact that
                 we auto-scale the graph each frame based on it's values.*/
                 if (app.config.graphAverage) {
-                    var avgColor = '#222255'
+                    var avgColor = '#222299'
                     var avgPointY = pointY.average();
                     var avgValue = pts.average();
                     ctx.beginPath();
@@ -283,7 +287,7 @@ var app = new Vue({
                     }
                     ctx.strokeStyle = avgColor;
                     ctx.stroke();
-                    labelExtremes(avgValue, avgPointY, ctx, avgColor    );
+                    labelExtremes(avgValue, avgPointY, ctx, avgColor, 50, 'AVG');
                 }
 
                 // if (app.graphTrend) {
@@ -305,25 +309,21 @@ var app = new Vue({
                 labelExtremes(pts, pointY, ctx, "#222222");
 
                 var nth = 0;
-
                 var reducer = Math.round(fit(pts.length, 0, 80, 1, 10));
                 //console.log(reducer);
                 for (var op = 0; op < pts.length; op++) {
                     
                     if (nth == reducer || op==0) {
                         nth = 0
-
                         //vertical bars
                         ctx.fillStyle = "#cccccc";
                         ctx.fillRect(pointX[op], res.y-margins.bottom, 1, margins.bottom+-(res.y-pointY[op]));
-                        
                         //label
                         ctx.fillStyle = "#888888";
                         ctx.fillText(lbls[op], pointX[op], res.y);
                     }
                     nth ++;
                 }
-
             }
 
 
