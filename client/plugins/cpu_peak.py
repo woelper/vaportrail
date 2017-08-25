@@ -12,6 +12,7 @@ import multiprocessing
 
 # Those come in from the base_plugin as default. You can override them here
 INTERVAL = 5
+THRESHOLD = 80
 
 from cpu import get_cpuinfo
 
@@ -20,13 +21,9 @@ def run():
 
 
     load = get_cpuinfo()
-    if load > 80:
+    if load > THRESHOLD:
         return {'CPU peak load events': load}
-    """
-    just return an empty dict if we don't match criteria. Empty dicts will be
-    discarded and the plugin will run at next INTERVAL.
-    """
-    return {}
+
 
 if __name__ == '__main__':
     print run()
