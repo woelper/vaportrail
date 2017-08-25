@@ -63,10 +63,11 @@ class Client():
                 #ccmsg.append(response.read())
             except urllib2.URLError:
                 msg += ['Could not connect to', self.post_url]
+                msg = [str(s) for s in msg]
+                print '{}'.format(' '.join(msg))
 
-            msg += ['in', round(1/(time.time() - timer)*10)/10, 'Hz']
-            msg = [str(s) for s in msg]
-            print '{}'.format(' '.join(msg))
+
+            # msg += ['in', round(1/(time.time() - timer)*10)/10, 'Hz']
         
         while True:
             loop()
@@ -86,11 +87,6 @@ class Client():
             t.daemon = True
             self.threads.append(t)
             t.start()
-
-        # while not self.shutdown:
-        #     # just stay active
-        #     time.sleep(20)
-        #     print self.threads
 
 
 
