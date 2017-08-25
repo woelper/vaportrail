@@ -37,7 +37,7 @@ def get_cpuinfo():
         load = False
         try:
             load = subprocess.check_output('uptime').rstrip()
-            load = load.split('age: ')[1].split('  ')[0].split(',')[1]
+            load = load.split('age: ')[1].split('  ')[0].split(', ')[1].replace(',', '.')
         except:
             pass
 
@@ -46,6 +46,7 @@ def get_cpuinfo():
             load = load/num_cpu*100
         except ValueError:
             print 'could not convert cpu to float value. Check uptime format.'
+
         return load
 
 # use the run funtion to do your logic
