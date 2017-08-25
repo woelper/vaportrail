@@ -38,7 +38,7 @@ class Client():
             try:
                 result = plugin.run()
             except Exception as e:
-                print 'plugin failed to run:', e
+                print '!!! Plugin failed to run:{} {}'.format(plugin.__name__, e)
                 return
 
             # dismiss empty values
@@ -119,4 +119,3 @@ if __name__ == '__main__':
     while True:
     # just stay active
         time.sleep(20)
-        print c.threads
