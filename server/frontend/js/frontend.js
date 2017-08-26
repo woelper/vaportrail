@@ -17,8 +17,8 @@ Array.prototype.scaleBetween = function (scaledMin, scaledMax) {
 
 Number.prototype.niceDisplay = function () {
     
-    if (this > 1000000) {
-        return Math.round(this/100000)*10 + " M";
+    if (this >= 1000000) {
+        return Math.round(this/100000)/10 + " M";
     }
     
     if (this > 1000) {
