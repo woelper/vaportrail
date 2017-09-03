@@ -56,8 +56,6 @@ impl <'a, 'r> FromRequest<'a, 'r> for URLArgs {
 }
 
 
-
-
 // #[get("/dump", format = "application/json")]
 #[get("/dump")]
 pub fn dump() -> &'static str {
@@ -66,6 +64,7 @@ pub fn dump() -> &'static str {
     // let response = *db.to_string();
     // let mut data = &db.get_mut(dataname);
     println!("{:?}", *db);
+    return json!(*db).as_str().unwrap();
     return "";
 }
 
