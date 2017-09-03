@@ -8,3 +8,10 @@ rocket = "0.*"
 rocket_codegen = "0.*"
 lazy_static = "0.1.*"
 time = "0.1"
+serde = "0.9"
+serde_json = "0.9"
+serde_derive = "0.9"
+
+[dependencies.rocket_contrib]
+default-features = false
+features = ["json"]

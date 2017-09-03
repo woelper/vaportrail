@@ -2,28 +2,23 @@
 #![plugin(rocket_codegen)]
 
 extern crate rocket;
-#[macro_use]
-extern crate lazy_static;
+extern crate serde_json;
+#[macro_use] extern crate rocket_contrib;
+#[macro_use] extern crate serde_derive;
+#[macro_use] extern crate lazy_static;
 extern crate time;
 
+
+use std::collections::HashMap;
 use rocket::Outcome;
 use rocket::request::{self, FormItems, FromRequest};
 use rocket::http::Status;
-use std::collections::HashMap;
 use rocket::Request;
 use std::sync::RwLock;
 
 
-#[derive(Debug)]
-enum EntryValue {
-    EntryString(String),
-    EntryFloat(f64),
-    EntryInt(i64)
-}
-
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Entry {
-    // val: EntryValue,
     val: String,
     timestamp: i64
 }
@@ -35,25 +30,25 @@ type HostInfo = String;
 
 lazy_static! {
     static ref DB: RwLock<HashMap<HostInfo, Data>> = RwLock::new(HashMap::new());
+    // static ref DB: <HashMap<HostInfo, Data>> :: HashMap::new();
+    
 }
 
 
-pub struct MyHostStuff {
-    // db: Option<HashMap<String, String>>
+pub struct URLArgs {
     items: String
 }
 
-impl <'a, 'r> FromRequest<'a, 'r> for MyHostStuff {
+impl <'a, 'r> FromRequest<'a, 'r> for URLArgs {
     type Error = &'static str;
     fn from_request(req: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
 
         match req.uri().query() {
             Some(query) => {
 
-                Outcome::Success(MyHostStuff {
+                Outcome::Success(URLArgs {
                     items: query.to_string()
                 })
-
             },
             None => Outcome::Failure((Status::BadRequest, "noep" ))
         }
@@ -61,43 +56,55 @@ impl <'a, 'r> FromRequest<'a, 'r> for MyHostStuff {
 }
 
 
-#[get("/")]
-pub fn add(my_host_stuff: MyHostStuff) -> &'static str {
 
-    let id = "host";
+
+// #[get("/dump", format = "application/json")]
+#[get("/dump")]
+pub fn dump() -> &'static str {
+    let mut db = DB.read().unwrap();
+    // let mut a = *db.Debug();
+    // let response = *db.to_string();
+    // let mut data = &db.get_mut(dataname);
+    println!("{:?}", *db);
+    return "";
+}
+
+#[get("/add")]
+pub fn add(args: URLArgs) -> &'static str {
+
+    // how we group values together
+    let id_name = "host";
+
+    //open DB for writing
     let mut db = DB.write().unwrap();
-    // println!("DB {:?}", db);
     
     let mut host = false;
-    let mut web_params = HashMap::new();
+    let mut arg_dict = HashMap::new();
  
-    // let mut kvdata = Data::new();
     let mut hostname = "";
 
-    println!("my_host_stuff.items {}", &my_host_stuff.items);        
+    println!("args.items {}", &args.items);        
     
-    //the only convention we have: we have to have an id currently called 'host'
-    // let mut url = "sdsdssdsdsd";
-    let url = my_host_stuff.items.as_str();
+    let url = args.items.as_str();
 
     for (key, value) in FormItems::from(url) {
-        if key == id {
+        if key == id_name {
             println!("Host is {}", value);        
             host = true;
             hostname = value;
         }
         else {
-            // println!("will insert {} : {}", key, value);
-            // db.insert(key.to_string(), value.to_string());
-            web_params.insert(key.to_string(), value.to_string());            
+            arg_dict.insert(key.to_string(), value.to_string());            
         }
     }
 
     // bail out if no host is set
-    if host != true { return "No Host in your query. Please specify /add?host=hostname&value=some_value."; }
+    if host != true {
+        return "No Host in your query. Please specify /add?host=hostname&value=some_value.";
+        }
 
 
-    println!("last kvdata {:?}", web_params);
+    println!("last kvdata {:?}", arg_dict);
     // insert only new items
     if db.contains_key(&hostname.to_string()) {
         println!("Updating: {:?}", hostname);
@@ -123,8 +130,6 @@ pub fn add(my_host_stuff: MyHostStuff) -> &'static str {
         // }
 
 
-        // let mut val: EntryValue;
-        // val = EntryValue(1);
         let mut entry = Entry {
             val: "ds".to_string(),
             timestamp: time::get_time().nsec as i64
@@ -147,7 +152,7 @@ pub fn add(my_host_stuff: MyHostStuff) -> &'static str {
 
         let mut data = Data::new();
 
-        for (key, value) in web_params {
+        for (key, value) in arg_dict {
             
             println!("k={} v={}", key, value);
             let mut entry_log = EntryLog::new();
@@ -172,7 +177,6 @@ pub fn add(my_host_stuff: MyHostStuff) -> &'static str {
 fn main() {
 
     {let _ = DB.read().unwrap();}
-    //rocket::ignite().catch(errors![not_found]).launch();
-    rocket::ignite().mount("/add", routes![add]).launch();
+    rocket::ignite().mount("/", routes![add, dump]).launch();
 
 }
