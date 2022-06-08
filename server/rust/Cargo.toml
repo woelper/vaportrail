@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Johann Woelper <woelper@gmail.com>"]
 
 [dependencies]
-rocket = "0.*"
-rocket_codegen = "0.*"
-lazy_static = "0.1.*"
+rocket = "0.4.11"
+rocket_codegen = "0.4.11"
+lazy_static = "1.4.0"
 time = "0.1"
